@@ -84,6 +84,17 @@ begin
     raise exception 'FAIL: in-flight session should have null active_ms, got %', got_null_active;
   end if;
 
+  -- An abandoned session must also report no duration: its real end time was never
+  -- recorded. lib/session/lifecycle.ts mirrors this, and the two must agree so a figure
+  -- computed in the app matches the same figure computed in SQL.
+  insert into sessions (user_id, date, session_name, status, started_at)
+  values (navin, '2026-08-25', 'Legs', 'abandoned', now() - interval '9 hours')
+  returning active_ms into got_null_active;
+  if got_null_active is not null then
+    raise exception 'FAIL: abandoned session should have null active_ms, got %',
+      got_null_active;
+  end if;
+
   -- Only one in-flight session per user.
   begin
     insert into sessions (user_id, date, session_name, status, started_at)
