@@ -27,11 +27,28 @@ Phase 0 — foundation. See [`docs/PLAN.md`](docs/PLAN.md) for the build plan,
 ```bash
 npm install
 cp .env.example .env.local   # then fill in the values
+npm run check:env            # validates them without printing secrets
 npm run dev
 ```
 
 `.env.local` is gitignored and must stay that way — it holds the Anthropic key and the
 Supabase `service_role` key, which bypasses row-level security.
+
+### Importing training history
+
+`Navin_Training_Tracker.xlsx` is **untracked** (it holds personal health data and git
+history is permanent). Keep your copy at the repo root — that is where
+`scripts/import-xlsx.mjs` looks:
+
+```bash
+node scripts/import-xlsx.mjs                              # dry run
+node scripts/import-xlsx.mjs --apply --user <uuid>        # import
+node scripts/import-xlsx.mjs --apply --prune --user <uuid> # also drop removed exercises
+```
+
+The script refuses to run if an older copy elsewhere on disk is newer than the one it
+selected — importing the wrong copy still passes verification, so it will not guess.
+Override with `XLSX_PATH=...` when you mean it.
 
 ## Layout
 

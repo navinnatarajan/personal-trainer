@@ -44,3 +44,9 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Source spreadsheet for the history import. Deliberately untracked: it holds personal
+# health data (weight, body fat, meal log) and git history is effectively permanent.
+# Keep your copy at the repo root; scripts/import-xlsx.mjs reads it from there.
+Navin_Training_Tracker.xlsx
+*.xlsx

@@ -58,20 +58,37 @@ function resolveWorkbook() {
 const source = resolveWorkbook();
 const XLSX_PATH = source.path;
 
-// Warn if another copy on disk is newer than the one being read.
-for (const other of CANDIDATE_PATHS) {
-  if (other === XLSX_PATH) continue;
-  try {
-    const st = statSync(other);
-    if (st.mtime > source.mtime) {
-      console.warn(
-        `\u26a0 A newer copy exists at ${other}\n` +
-          `  (${st.mtime.toISOString()} vs ${source.mtime.toISOString()} for the file being read).\n` +
-          `  Set XLSX_PATH to choose explicitly.\n`,
-      );
+/*
+ * Refuse to run when a copy elsewhere on disk is newer than the one selected.
+ *
+ * This is a hard failure rather than a warning on purpose. A stale import verifies
+ * perfectly — row counts and volume match the file that was read — so nothing downstream
+ * catches it, and a printed warning is easy to scroll past. It has already happened once
+ * (see docs/DECISIONS.md).
+ *
+ * Override with XLSX_PATH when the older file really is the one you want.
+ */
+if (!process.env.XLSX_PATH) {
+  for (const other of CANDIDATE_PATHS) {
+    if (other === XLSX_PATH) continue;
+    try {
+      const st = statSync(other);
+      if (st.mtime > source.mtime) {
+        console.error(
+          `\u2717 Ambiguous source: a newer copy of the workbook exists elsewhere.\n\n` +
+            `  reading : ${XLSX_PATH}\n` +
+            `            ${source.mtime.toISOString()}\n` +
+            `  newer   : ${other}\n` +
+            `            ${st.mtime.toISOString()}\n\n` +
+            `  Copy the newer file over the one being read, or set XLSX_PATH to choose\n` +
+            `  explicitly. Importing the wrong copy still passes verification, which is\n` +
+            `  why this refuses to guess.`,
+        );
+        process.exit(1);
+      }
+    } catch {
+      /* absent, fine */
     }
-  } catch {
-    /* absent, fine */
   }
 }
 
