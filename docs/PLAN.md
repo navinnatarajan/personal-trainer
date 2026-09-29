@@ -17,7 +17,7 @@ Target users: Navin + 3 others. Explicitly **not** a scale problem. Success = "I
 `~/Desktop/Projects/Claude/Personal Trainer/` contains the two artifacts that define the domain model. Do not redesign these — port them.
 
 - **`Navin_Week1_Tracker.html`** (715 lines) — the `PLAN` array at line 319 is effectively the week-plan API contract. Per-day: `{id, dow, date, session, budget, head, ex[], checklist[]}`. Per-exercise: `{n, w, u, r, sets, rest, ss, tag, note}`. Logging state persists to `localStorage` (line 436); `recapText()` at line 652 is the copy-paste format being eliminated.
-- **`Navin_Training_Tracker.xlsx`** — 7 sheets: `Start Here` (the double-progression rule), `Week Plan`, `Workout Log` (1000 rows, the real schema), `Body Metrics`, `Meal Log`, `Nutrition`, `Dashboard` (per-exercise baseline → next target → status).
+- **`Navin_Training_Tracker.xlsx`** — 7 sheets: `Start Here` (the double-progression rule), `Week Plan`, `Workout Log` (the real schema; ~1000 rows of dragged-down formulas but only 14 rows of actual data), `Body Metrics`, `Meal Log`, `Nutrition`, `Dashboard` (per-exercise baseline → next target → status).
 
 Two formulas verified against the sheet's own numbers, so encode them as-is:
 - `volume = weight × reps` (115 × 8 = 920 ✓)
@@ -296,7 +296,9 @@ Today's session (or rest day), the week at a glance, per-lift progression status
 ### Phase 0 — Foundation (`phase-0-foundation`)
 Everything in **Setup** above, then: Next.js + Supabase scaffold, Google auth working end to end, schema + RLS migrations, `exercises` seeded from the `Dashboard` sheet's lift list, first Vercel deploy green.
 
-**Write the Excel importer here, not later.** A script parsing `Navin_Training_Tracker.xlsx` into `set_logs`, `body_metrics`, and `exercise_targets`. Without real history, plan generation has nothing to progress *from*, and the app is strictly worse than the spreadsheet on day one. Dates in the sheet are Excel serials (`46258` = 2026-08-24), not strings. Synthesize one `sessions` row per historical date so the foreign key holds, with `started_at`/`ended_at` null and status `completed` — historical durations are unknown and should stay unknown rather than being invented.
+**Write the Excel importer here** (`scripts/import-xlsx.mjs`, done). Its value turned out to be the **exercise library**, not the history: the sheet holds 27 lifts with muscle groups and baselines, but only **14 logged sets from a single session**. The ~1000 apparent rows are formulas dragged down with no data in them.
+
+So the first generated week is mostly baseline-setting rather than progression, which `lib/progression.ts` already handles via `establish_baseline`. Notes for anyone re-reading this: cells arrive as `{formula, result}` objects, so every read must take the computed value; `increment_lbs` is derived from the sheet's own baseline→target delta where that delta is ≤5 (for most lifts it is exactly one increment) and falls back to an equipment heuristic for the legs entries, where the targets are aspirational. Historical sessions keep `started_at`/`ended_at` null with status `completed` — those durations are genuinely unknown and inventing them is the bad data the explicit timer exists to prevent.
 
 ### Phase 1 — The loop (this is the MVP) (`phase-1-loop`)
 Onboarding → check-in → plan generation → session logger with start/stop → dashboard → coach chat. **Ship and use this for two weeks before touching Phase 2.** If the loop works, the product is proven; if it doesn't, health data wouldn't have saved it.
@@ -349,7 +351,7 @@ scripts/import-xlsx.ts      one-time history migration
 - A session left `active` overnight is marked `abandoned` and does **not** appear in average-duration stats.
 - Editing `started_at` on the recap recomputes `active_ms`.
 
-**Importer** — `set_logs` row count and total volume must match the `Workout Log` sheet. Spot-check Mon Week 1 Incline Bench (115 lb × 8/8/8/7).
+**Importer** — `set_logs` row count and total volume must match the `Workout Log` sheet; the script asserts both and exits non-zero on a mismatch (verified: 14 rows, 6632.5 lbs). Re-running must not duplicate (verified). Spot-check Mon Week 1 Incline Bench (115 lb × 8/8/8/7 → volume 920, est 1RM 145.67).
 
 **Plan generation** — run against imported history with a fixed check-in input. Assert `parsed_output` is non-null; every session fits its `time_budget_min` (sets × (rest + ~30s)); no exercise needs unavailable equipment; every lift flagged `add_weight` actually went up. Then read the coaching notes — they should reference real history. If they're generic, the context block is wrong, not the model.
 

@@ -66,6 +66,36 @@ setup for a four-user app. Running migrations from `supabase/migrations/` agains
 hosted project via `npx supabase db push` keeps the schema in version control (the real
 goal) without a local stack or a global CLI install.
 
+### The spreadsheet's value is the exercise library, not the history
+**2026-09-29** — An early reading of the workbook reported ~1000 rows in `Workout Log`
+and the plan was written around importing "1000 rows of history". That was wrong. The
+sheet has formulas dragged down about a thousand rows; only **14 rows hold data**, from a
+single session (Mon 24 Aug, Push). `Body Metrics` has one row.
+
+What is genuinely valuable is the `Dashboard` sheet: **27 exercises** with muscle groups,
+baselines, and targets. That is the vocabulary the model programs against, and it would
+otherwise have to be retyped.
+
+Consequences: the first generated week is mostly baseline-setting rather than progression
+(`lib/progression.ts` already returns `establish_baseline` for an exercise with no
+history, so no code change was needed), and the earlier claim that an empty database
+would make the app "strictly worse than the spreadsheet on day one" does not hold — the
+spreadsheet has almost no history either.
+
+Lesson worth keeping: counting `<row>` elements in the sheet XML counts formula rows, not
+data. Presence of a cell is not presence of a value.
+
+### `increment_lbs` is derived from the sheet, not guessed
+**2026-09-29** — For most lifts the recorded `baseline → next target` delta *is* one
+increment (DB Shoulder Press 45→47.5, Lateral Raise 17.5→20, Pushdown 50→52.5), so the
+importer uses that delta whenever it is ≤5 lbs. Leg work is the exception — Leg Press
+230→275, Hack Squat 200→240 are aspirational goals rather than increments — so anything
+larger falls back to an equipment heuristic (barbell 5, dumbbell/cable 2.5, bodyweight 0).
+
+These values should be sanity-checked against the actual gym: a cable stack that moves in
+5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
+prescribe a weight that cannot be loaded.
+
 ### Anthropic auth: API key now, Workload Identity Federation later
 **2026-09-29** — Anthropic supports Workload Identity Federation (WIF): a workload
 presents a short-lived OIDC token from its platform and exchanges it for an Anthropic
