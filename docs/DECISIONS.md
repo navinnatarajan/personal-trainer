@@ -92,19 +92,29 @@ requirement, or the point where rotating the key feels risky.
 SDK's credential resolution, and an *empty* `ANTHROPIC_API_KEY=""` still wins its
 precedence slot and authenticates with an empty key. It must be genuinely unset.
 
-### Spend limits, not key expiry, are the cost control
-**2026-09-29** — The API key is created with expiry `Never`, scoped to a dedicated
-`personal-trainer` workspace carrying a monthly spend cap.
+### API key: 30-day expiry, inside a spend-capped workspace
+**2026-09-29** — Two independent controls, because they bound different risks:
 
-Key expiry **cannot be changed after creation**, so a short expiry guarantees the app
-breaks at an unpredictable moment — most likely mid-session — with an auth error that reads
-like a bug. The protection it would buy is small here, because the key is handled by one
-person in two places.
+- **Workspace spend cap** (`personal-trainer` workspace, $20/month) bounds *cost*. The
+  realistic way to lose money is a looping API call against Opus 5 pricing, not a stolen
+  key. Adjustable at any time.
+- **30-day key expiry** bounds *exposure*. Chosen over `Never` deliberately: this is a
+  first deployment, and the plausible leak paths early on are a screenshot, a pasted log,
+  or a stray `git add` — all of which a time-boxed key caps whether or not the leak is
+  noticed. `Never` assumes the leak gets caught.
 
-A workspace spend cap bounds the actual risk (a looping API call against Opus 5 pricing is
-the realistic way to lose money, not a stolen key) and can be adjusted at any time. Users
-of the app never hold API keys — the server holds one and serves everyone — so there is no
-key sprawl for expiry to mitigate.
+A forced rotation is also cheap practice while the stakes are near zero: better to learn
+the procedure on an app with four users than to discover it under pressure later.
+
+**The cost of this choice** is that expiry cannot be extended after creation, so the app
+*will* stop working on the expiry date, and the failure looks like a bug rather than an
+expiry: requests fail with a 401 and an `authentication_error`. Mitigations: note the date,
+set a reminder several days ahead, and treat an unexplained 401 as "check the key expiry
+first". Rotation means creating a *new* key and updating it in both `.env.local` and
+Vercel's environment variables — the old key cannot be renewed.
+
+App users never hold API keys: the server holds one and serves everyone. So the expiry
+burden stays at one key in two places regardless of user count.
 
 ### Import the spreadsheet history in Phase 0, not later
 **2026-09-27** — Plan generation progresses *from* history. With an empty database the app
