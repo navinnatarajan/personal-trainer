@@ -11,7 +11,8 @@ and an Excel file moved between them by copy-paste.
 
 ## Status
 
-Phase 0 — foundation. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan and
+Phase 0 — foundation. See [`docs/PLAN.md`](docs/PLAN.md) for the build plan,
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how the pieces fit, and
 [`docs/DECISIONS.md`](docs/DECISIONS.md) for why things are the way they are.
 
 ## Stack
