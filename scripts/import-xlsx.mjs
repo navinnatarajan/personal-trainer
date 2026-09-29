@@ -20,18 +20,64 @@
  *   node scripts/import-xlsx.mjs                  # dry run, prints what it would do
  *   node scripts/import-xlsx.mjs --apply          # writes
  *   node scripts/import-xlsx.mjs --apply --user <uuid>
+ *   node scripts/import-xlsx.mjs --apply --prune   # also drop unused removed exercises
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import ExcelJS from "exceljs";
 import { createClient } from "@supabase/supabase-js";
 
-const XLSX_PATH =
-  process.env.XLSX_PATH ??
-  "/Users/navinnatarajan/Desktop/Projects/Claude/Personal Trainer/Navin_Training_Tracker.xlsx";
+/**
+ * Resolve the workbook. The repo copy wins, because that is the one kept up to date;
+ * the original scratch folder is only a fallback for a fresh clone.
+ *
+ * An earlier version hardcoded the scratch-folder path and did not report which file it
+ * read, so it silently imported a month-old copy. Always print the resolved path, size,
+ * and modified time — a stale source is invisible otherwise.
+ */
+const CANDIDATE_PATHS = [
+  process.env.XLSX_PATH,
+  "./Navin_Training_Tracker.xlsx",
+  `${process.env.HOME}/Desktop/Projects/Claude/Personal Trainer/Navin_Training_Tracker.xlsx`,
+].filter(Boolean);
+
+function resolveWorkbook() {
+  for (const candidate of CANDIDATE_PATHS) {
+    try {
+      const st = statSync(candidate);
+      return { path: candidate, size: st.size, mtime: st.mtime };
+    } catch {
+      continue;
+    }
+  }
+  console.error("\u2717 No workbook found. Looked in:");
+  for (const c of CANDIDATE_PATHS) console.error(`  - ${c}`);
+  process.exit(1);
+}
+
+const source = resolveWorkbook();
+const XLSX_PATH = source.path;
+
+// Warn if another copy on disk is newer than the one being read.
+for (const other of CANDIDATE_PATHS) {
+  if (other === XLSX_PATH) continue;
+  try {
+    const st = statSync(other);
+    if (st.mtime > source.mtime) {
+      console.warn(
+        `\u26a0 A newer copy exists at ${other}\n` +
+          `  (${st.mtime.toISOString()} vs ${source.mtime.toISOString()} for the file being read).\n` +
+          `  Set XLSX_PATH to choose explicitly.\n`,
+      );
+    }
+  } catch {
+    /* absent, fine */
+  }
+}
 
 const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
+const PRUNE = args.includes("--prune");
 const userArg = args[args.indexOf("--user") + 1];
 const USER_ID = args.includes("--user") ? userArg : process.env.IMPORT_USER_ID;
 
@@ -185,7 +231,9 @@ const bodyRows = readBodyMetrics();
 const sessionKeys = [...new Set(setRows.map((s) => `${s.date}|${s.session_name ?? ""}`))];
 const totalVolume = setRows.reduce((a, s) => a + s.weight_lbs * (s.reps ?? 0), 0);
 
-console.log(`Source: ${XLSX_PATH}\n`);
+console.log(
+  `Source: ${XLSX_PATH}\n        ${source.size} bytes, modified ${source.mtime.toISOString()}\n`,
+);
 console.log(`  exercises      ${exercises.length}`);
 console.log(`  sessions       ${sessionKeys.length}  (${sessionKeys.join(", ")})`);
 console.log(`  set_logs       ${setRows.length}`);
@@ -343,6 +391,65 @@ if (bodyRows.length) {
   );
   if (bmErr) throw bmErr;
   console.log(`  body_metrics   ${bodyRows.length} upserted`);
+}
+
+// --- reconcile exercises removed from the sheet ------------------------------
+//
+// An exercise can disappear from the Dashboard because it was deleted or, more often,
+// renamed for equipment specificity ("Calf Raise" -> "Calf Raise (Seated)"). A stale row
+// is not harmless: it stays in the library the model programs against, carrying an
+// out-of-date baseline.
+//
+// Deleting is only ever safe when nothing references it. An exercise that still has
+// logged sets is a rename needing a human mapping decision, so it is reported and never
+// touched — losing training history to a tidy-up would be far worse than a stale name.
+
+const sheetNames = new Set(exercises.map((e) => e.name));
+const { data: allExercises, error: allErr } = await db
+  .from("exercises")
+  .select("id, name")
+  .eq("user_id", USER_ID);
+if (allErr) throw allErr;
+
+const stale = allExercises.filter((r) => !sheetNames.has(r.name));
+if (stale.length) {
+  const withHistory = [];
+  const empty = [];
+  for (const s of stale) {
+    const { count, error: cErr } = await db
+      .from("set_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("exercise_id", s.id);
+    if (cErr) throw cErr;
+    (count ? withHistory : empty).push({ ...s, count: count ?? 0 });
+  }
+
+  if (empty.length) {
+    if (PRUNE) {
+      const { error: delErr } = await db
+        .from("exercises")
+        .delete()
+        .in("id", empty.map((e) => e.id));
+      if (delErr) throw delErr;
+      console.log(
+        `  pruned         ${empty.length} unused (${empty.map((e) => e.name).join(", ")})`,
+      );
+    } else {
+      console.log(
+        `\n  ${empty.length} exercise(s) absent from the sheet with no logged sets:` +
+          `\n    ${empty.map((e) => e.name).join(", ")}` +
+          `\n  Re-run with --prune to remove them.`,
+      );
+    }
+  }
+
+  if (withHistory.length) {
+    console.warn(
+      `\n\u26a0 ${withHistory.length} exercise(s) absent from the sheet but carrying logged sets.` +
+        `\n  Not deleted — this is almost certainly a rename and needs a decision:`,
+    );
+    for (const e of withHistory) console.warn(`    ${e.name} (${e.count} sets)`);
+  }
 }
 
 // --- verify against the source ----------------------------------------------

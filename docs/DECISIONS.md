@@ -66,24 +66,53 @@ setup for a four-user app. Running migrations from `supabase/migrations/` agains
 hosted project via `npx supabase db push` keeps the schema in version control (the real
 goal) without a local stack or a global CLI install.
 
-### The spreadsheet's value is the exercise library, not the history
-**2026-09-29** — An early reading of the workbook reported ~1000 rows in `Workout Log`
-and the plan was written around importing "1000 rows of history". That was wrong. The
-sheet has formulas dragged down about a thousand rows; only **14 rows hold data**, from a
-single session (Mon 24 Aug, Push). `Body Metrics` has one row.
+### Two copies of the workbook, and the importer read the stale one
+**2026-09-29** — Twice-corrected, so the record is worth keeping straight.
 
-What is genuinely valuable is the `Dashboard` sheet: **27 exercises** with muscle groups,
-baselines, and targets. That is the vocabulary the model programs against, and it would
-otherwise have to be retyped.
+The workbook exists in two places: `Personal Trainer/Navin_Training_Tracker.xlsx` (the
+original scratch folder) and `personal-trainer/Navin_Training_Tracker.xlsx` (the repo).
+The importer hardcoded the scratch path and, worse, did not print which file it read, so
+it silently imported a five-week-old copy.
 
-Consequences: the first generated week is mostly baseline-setting rather than progression
-(`lib/progression.ts` already returns `establish_baseline` for an exercise with no
-history, so no code change was needed), and the earlier claim that an empty database
-would make the app "strictly worse than the spreadsheet on day one" does not hold — the
-spreadsheet has almost no history either.
+What the two contained:
 
-Lesson worth keeping: counting `<row>` elements in the sheet XML counts formula rows, not
-data. Presence of a cell is not presence of a value.
+| | Stale copy | Current copy |
+|---|---|---|
+| Logged sets | 14 | **155** |
+| Sessions | 1 | **11** (24 Aug – 21 Sep) |
+| Volume | 6,632 lbs | **120,285 lbs** |
+| Exercises | 27 | **32** |
+
+An earlier note here claimed the workbook held almost no history and that the first
+generated week would therefore be baseline-setting. That was true of the stale copy only.
+**21 of 32 exercises have logged sets**, so progressive overload has real data to work
+from from day one.
+
+Two separate mistakes, both worth naming:
+
+1. **Counting `<row>` elements in the sheet XML counts formulas, not data.** The sheet has
+   ~1000 rows of dragged-down formulas. Presence of a cell is not presence of a value.
+2. **A tool that resolves an input path must report which path it used.** The stale import
+   verified successfully — row counts and volume matched the source it read. Verification
+   against the wrong source proves nothing.
+
+Fixes: the importer now prefers the repo copy, prints the resolved path with size and
+modified time, and warns when another copy on disk is newer.
+
+### Pruning removed exercises, but never ones with history
+**2026-09-29** — Updating the workbook renamed two lifts for equipment specificity
+(`Romanian Deadlift` → `Romanian Deadlift (DB)`, `Calf Raise` → `Calf Raise (Seated)`),
+leaving the old names orphaned in the database. Stale rows are not harmless: they stay in
+the exercise library the model programs against, carrying out-of-date baselines.
+
+`--prune` deletes exercises absent from the Dashboard **only when no `set_logs` reference
+them**. An exercise that still has logged sets is almost certainly a rename and needs a
+human mapping decision, so it is reported and never deleted — losing training history to
+a tidy-up is far worse than tolerating a stale name.
+
+Note that the set-count verification alone would not have caught this: the orphans had
+zero logged sets, so source and database row counts matched while the exercise table
+quietly held 34 rows against the sheet's 32. Per-table counts are checked now.
 
 ### `increment_lbs` is derived from the sheet, not guessed
 **2026-09-29** — For most lifts the recorded `baseline → next target` delta *is* one
