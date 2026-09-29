@@ -66,6 +66,46 @@ setup for a four-user app. Running migrations from `supabase/migrations/` agains
 hosted project via `npx supabase db push` keeps the schema in version control (the real
 goal) without a local stack or a global CLI install.
 
+### Anthropic auth: API key now, Workload Identity Federation later
+**2026-09-29** — Anthropic supports Workload Identity Federation (WIF): a workload
+presents a short-lived OIDC token from its platform and exchanges it for an Anthropic
+bearer token, so no long-lived secret lives in the deployment. It works with Vercel, whose
+functions are issued an OIDC token. We are deliberately not using it yet.
+
+- **It adds a mechanism rather than removing one.** A laptop is not a federated workload,
+  so local development still needs an API key (or an `ant auth login` OAuth profile). WIF
+  on Vercel plus a key locally is two credential paths, not zero.
+- **Setup is non-trivial**: admin/owner role on the Anthropic org, a service account, and a
+  federation rule trusting Vercel's OIDC issuer.
+- **The current blast radius is small.** The key is in a gitignored `.env.local` and
+  Vercel's encrypted environment variables, never in git, and is scoped to a workspace with
+  a monthly spend cap.
+- **Deferring is free**, which is the deciding factor. The SDK auto-detects WIF from
+  environment variables, so `new Anthropic()` is unchanged either way. Adopting it later is
+  a configuration change, not a refactor.
+
+**Switch when** any of these becomes true: users beyond the initial four (especially paying
+ones), CI that calls the API, more than one person able to read the key, any compliance
+requirement, or the point where rotating the key feels risky.
+
+**Trap for that future change:** a set `ANTHROPIC_API_KEY` silently outranks WIF in the
+SDK's credential resolution, and an *empty* `ANTHROPIC_API_KEY=""` still wins its
+precedence slot and authenticates with an empty key. It must be genuinely unset.
+
+### Spend limits, not key expiry, are the cost control
+**2026-09-29** — The API key is created with expiry `Never`, scoped to a dedicated
+`personal-trainer` workspace carrying a monthly spend cap.
+
+Key expiry **cannot be changed after creation**, so a short expiry guarantees the app
+breaks at an unpredictable moment — most likely mid-session — with an auth error that reads
+like a bug. The protection it would buy is small here, because the key is handled by one
+person in two places.
+
+A workspace spend cap bounds the actual risk (a looping API call against Opus 5 pricing is
+the realistic way to lose money, not a stolen key) and can be adjusted at any time. Users
+of the app never hold API keys — the server holds one and serves everyone — so there is no
+key sprawl for expiry to mitigate.
+
 ### Import the spreadsheet history in Phase 0, not later
 **2026-09-27** — Plan generation progresses *from* history. With an empty database the app
 would be strictly worse than the spreadsheet on day one, and the progression logic would
