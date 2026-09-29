@@ -36,7 +36,8 @@ create table profiles (
   session_budget_min smallint,
   equipment         text[] not null default '{}',
   gym_name          text,
-  timezone          text not null default 'America/Chicago',
+  -- Drives which calendar day a session belongs to and when the Sunday check-in fires.
+  timezone          text not null default 'America/New_York',
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
 );
