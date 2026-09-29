@@ -49,8 +49,23 @@ const SPEC = [
     check: (v) =>
       v.startsWith("sk-ant-") ? null : "expected a key starting sk-ant-",
   },
-  { key: "GOOGLE_CLIENT_ID", required: false, secret: false },
-  { key: "GOOGLE_CLIENT_SECRET", required: false, secret: true },
+  {
+    key: "GOOGLE_CLIENT_ID",
+    required: false,
+    secret: false,
+    // Catches the common mistake of pasting the secret, or the project number, here.
+    check: (v) =>
+      v.endsWith(".apps.googleusercontent.com")
+        ? null
+        : "expected an ID ending .apps.googleusercontent.com",
+  },
+  {
+    key: "GOOGLE_CLIENT_SECRET",
+    required: false,
+    secret: true,
+    check: (v) =>
+      v.startsWith("GOCSPX-") ? null : "expected a secret starting GOCSPX-",
+  },
   { key: "HEALTH_INGEST_SECRET", required: false, secret: true },
 ];
 
