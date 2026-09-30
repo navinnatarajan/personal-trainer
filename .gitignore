@@ -1,0 +1,52 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+# ...but the template carries no secrets and must be tracked.
+!.env.example
+
+# vercel
+.vercel
+
+# supabase CLI scratch state (holds the linked project ref and local temp files)
+supabase/.temp/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Source spreadsheet for the history import. Deliberately untracked: it holds personal
+# health data (weight, body fat, meal log) and git history is effectively permanent.
+# Keep your copy at the repo root; scripts/import-xlsx.mjs reads it from there.
+Navin_Training_Tracker.xlsx
+*.xlsx

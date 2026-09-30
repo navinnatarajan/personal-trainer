@@ -1,0 +1,800 @@
+<title>Ink and Sage</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /*
+   * Single-theme dark, deliberately. The palette is built on Ink #0C1014 as its base;
+   * a light counterpart would be a different design, not a variant of this one.
+   * Every colour is painted explicitly so the page holds on any host ground.
+   */
+  :root {
+    --ink: #0C1014;
+    --surface: #141A20;
+    --surface-2: #19212a;
+    --line: #2B353D;
+    --line-soft: #202a33;
+    --muted: #9BA39C;
+    --bone: #DEDECB;
+
+    --sage: #CFD5B4;
+    --mist: #7F9BA0;
+    --clay: #D08A6B;
+    --moss: #7FA06A;
+
+    --sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --r-sm: 12px;
+    --r-md: 18px;
+    --r-lg: 20px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex; flex-direction: column; gap: 68px;
+  }
+
+  /* --- type roles --- */
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0; font-size: clamp(38px, 7vw, 62px); font-weight: 500; letter-spacing: -0.035em; line-height: 0.98; text-transform: uppercase; text-wrap: balance; }
+  h2 { margin: 0; font-size: 27px; font-weight: 600; letter-spacing: -0.02em; text-transform: uppercase; text-wrap: balance; }
+  h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 62ch; }
+  .lede { font-size: 17px; font-weight: 300; }
+  .note { font-size: 14px; color: var(--muted); }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  a { color: var(--sage); }
+  :focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; border-radius: 4px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 20px; }
+  .locked { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface); }
+  .chip b { color: var(--bone); font-weight: 600; }
+  .chip.new { border-color: color-mix(in srgb, var(--sage) 45%, var(--line)); color: var(--sage); }
+
+  section { display: flex; flex-direction: column; gap: 28px; }
+  .sec-head { display: flex; flex-direction: column; gap: 10px; }
+  .rule { height: 1px; background: var(--line-soft); border: 0; margin: 0; }
+
+  /* --- changelog --- */
+  .changes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); }
+  .change { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; display: flex; flex-direction: column; gap: 7px; }
+  .change .was { font-size: 12px; font-family: var(--mono); color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--clay) 70%, transparent); }
+  .change .now { font-size: 14px; font-weight: 600; }
+  .change p { font-size: 13px; color: var(--muted); max-width: none; }
+
+  /* --- mockups --- */
+  .mock-row { display: grid; gap: 36px; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); align-items: start; }
+  .mock-pair { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 390px)); align-items: start; }
+  @media (max-width: 860px) { .mock-row { grid-template-columns: minmax(0, 1fr); } }
+
+  .phone { width: 100%; max-width: 390px; background: var(--ink); border: 1px solid var(--line); border-radius: 28px; padding: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+  .screen { background: var(--ink); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+  .app-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+  .wordmark { font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .app-body { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .card-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .card-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  .today { background: var(--sage); color: var(--ink); border: 0; border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .today .card-lbl { color: color-mix(in srgb, var(--ink) 62%, transparent); }
+  .today .title { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; text-transform: uppercase; line-height: 1; }
+  .today .meta { font-size: 13px; font-weight: 500; color: color-mix(in srgb, var(--ink) 72%, transparent); }
+  .start { appearance: none; border: 0; cursor: pointer; background: var(--ink); color: var(--sage); font-family: var(--sans); font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 13px 16px; border-radius: 999px; width: 100%; }
+
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .day { border-radius: var(--r-sm); padding: 9px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; background: var(--surface-2); border: 1px solid var(--line-soft); }
+  .day .dow { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--muted); }
+  .day .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--line); }
+  .day.upper .dot { background: var(--mist); }
+  .day.lower .dot { background: var(--clay); }
+  .day.sat .dot { background: var(--sage); }
+  .day.done { border-color: color-mix(in srgb, var(--moss) 45%, var(--line)); }
+  .day.done .dot { background: var(--moss); }
+  .day.now { background: color-mix(in srgb, var(--sage) 14%, var(--surface)); border-color: color-mix(in srgb, var(--sage) 55%, var(--line)); }
+  .day.now .dow { color: var(--sage); }
+
+  .beat { display: flex; flex-direction: column; }
+  .beat-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 11px 0; border-top: 1px solid var(--line-soft); }
+  .beat-row:first-child { border-top: 0; }
+  .beat-row .ex { font-size: 14px; font-weight: 500; }
+  .beat-row .was { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .target { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; text-align: right; white-space: nowrap; }
+  .target.up { color: var(--moss); }
+  .target.hold { color: var(--clay); }
+  .target small { display: block; font-family: var(--sans); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.72; }
+
+  /* weight input tile */
+  .tiles { display: grid; grid-template-columns: 1.15fr 1fr; gap: 10px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 13px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .tile .k { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .tile .v { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+  .tile .d { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .weigh {
+    display: flex; align-items: baseline; gap: 8px;
+    border-bottom: 1px dashed color-mix(in srgb, var(--sage) 55%, var(--line));
+    padding-bottom: 3px;
+  }
+  .weigh input {
+    appearance: none; background: transparent; border: 0; padding: 0; width: 4.2em;
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 21px;
+    font-weight: 600; letter-spacing: -0.02em; color: var(--bone);
+  }
+  .weigh input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+  .weigh .unit { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* ask affordance */
+  .ask {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px dashed var(--line);
+    border-radius: 999px; padding: 11px 15px; cursor: pointer;
+    font-family: var(--sans); width: 100%; text-align: left;
+  }
+  .ask .ico {
+    width: 20px; height: 20px; border-radius: 999px; flex: 0 0 auto;
+    background: color-mix(in srgb, var(--mist) 28%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--mist) 60%, var(--line));
+  }
+  .ask span { font-size: 13px; color: var(--muted); }
+
+  .nav { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: var(--ink); padding: 9px 8px 13px; }
+  .nav div { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
+  .nav div.on { color: var(--sage); }
+
+  /* plan: this-week rows */
+  .sched { display: flex; flex-direction: column; }
+  .sched-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 11px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line-soft); }
+  .sched-row:first-child { border-top: 0; }
+  .sched-row .d { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--muted); }
+  .sched-row .s { font-size: 14px; font-weight: 500; }
+  .sched-row .s em { font-style: normal; font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; }
+  .flag { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+  .flag.done { background: color-mix(in srgb, var(--moss) 20%, var(--surface)); color: var(--moss); }
+  .flag.plan { background: var(--surface-2); color: var(--muted); }
+  .flag.miss { background: color-mix(in srgb, var(--clay) 20%, var(--surface)); color: var(--clay); }
+
+  .banner { border-radius: var(--r-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .banner.ok { background: color-mix(in srgb, var(--moss) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--moss) 40%, var(--line)); }
+  .banner.warn { background: color-mix(in srgb, var(--clay) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--clay) 45%, var(--line)); }
+  .banner .t { font-size: 13px; font-weight: 600; }
+  .banner.ok .t { color: var(--moss); }
+  .banner.warn .t { color: var(--clay); }
+  .banner p { font-size: 12px; color: var(--muted); max-width: none; }
+
+  .step-rail { display: flex; align-items: center; gap: 7px; padding: 0 16px 6px; }
+  .step-rail span { flex: 1; height: 3px; border-radius: 999px; background: var(--line); }
+  .step-rail span.on { background: var(--sage); }
+  .step-title { font-size: 22px; font-weight: 600; letter-spacing: -0.025em; text-transform: uppercase; line-height: 1.05; }
+
+  /* day + duration rows */
+  .dayrow { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line-soft); }
+  .dayrow:first-of-type { border-top: 0; }
+  .toggle { display: flex; align-items: center; gap: 10px; }
+  .box { width: 19px; height: 19px; border-radius: 6px; border: 1.5px solid var(--line); flex: 0 0 auto; }
+  .box.on { background: var(--sage); border-color: var(--sage); position: relative; }
+  .box.on::after { content: ""; position: absolute; inset: 4px 4px 5px 4px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg) translateY(-1px); }
+  .dayrow .nm { font-size: 14px; font-weight: 500; }
+  .dayrow.off .nm { color: var(--muted); }
+  .dur {
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--bone);
+    border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  }
+  .dur.muted { color: var(--muted); }
+  .dur.hero { background: color-mix(in srgb, var(--sage) 18%, var(--surface)); border-color: color-mix(in srgb, var(--sage) 50%, var(--line)); color: var(--sage); }
+
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field .k { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .input { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px 13px; font-family: var(--sans); font-size: 14px; color: var(--muted); }
+  .cta { appearance: none; border: 0; cursor: pointer; width: 100%; background: var(--sage); color: var(--ink); font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 16px; border-radius: 999px; }
+  .cta.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 600; }
+
+  /* confirm sheet */
+  .sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; gap: 13px; }
+  .sheet .t { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  .sheet p { font-size: 13px; color: var(--muted); max-width: none; }
+  .sheet .row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+  /* annotations */
+  .annos { display: flex; flex-direction: column; gap: 22px; }
+  .anno { display: flex; flex-direction: column; gap: 7px; padding-left: 15px; border-left: 2px solid var(--line); }
+  .anno.key { border-left-color: var(--sage); }
+  .anno.mine { border-left-color: var(--clay); }
+  .anno .h { font-size: 13px; font-weight: 700; }
+  .anno p { font-size: 14px; color: var(--muted); max-width: 52ch; }
+  .anno p b { color: var(--bone); font-weight: 600; }
+
+  .qs { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+  .q { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; display: flex; flex-direction: column; gap: 9px; }
+  .q .n { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--clay); }
+  .q p { font-size: 14px; color: var(--muted); max-width: none; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .start, .cta, .dur, .ask { transition: filter 140ms ease; }
+    .start:hover, .cta:hover, .dur:hover, .ask:hover { filter: brightness(1.08); }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Saturday Fitness · design review · round two</p>
+    <h1>Ink and Sage</h1>
+    <p class="lede">
+      Revised after your notes. Three tabs instead of four, the coach moved into context,
+      and Plan is now useful every day of the week rather than only on Sundays. Still
+      populated from your real database — the Sep 21 Pull session, and targets computed by
+      the actual progression rules.
+    </p>
+    <div class="locked">
+      <span class="chip">Base <b>Ink #0C1014</b></span>
+      <span class="chip"><b>Hanken Grotesk</b> + mono digits</span>
+      <span class="chip new">Lift · Plan · Review</span>
+      <span class="chip new">Coach is contextual</span>
+      <span class="chip new">Plan works mid-week</span>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <!-- ============ WHAT CHANGED ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Your notes, applied</p>
+      <h2>Six changes</h2>
+    </div>
+    <div class="changes">
+      <div class="change">
+        <span class="was">Today / Week / History / Coach</span>
+        <span class="now">Lift · Plan · Review</span>
+        <p>Three tabs you'd all visit, named as verbs. Coach became an Ask button where the question actually arises.</p>
+      </div>
+      <div class="change">
+        <span class="was">Volume 120,285 lbs</span>
+        <span class="now">Weight, as an input</span>
+        <p>You were right — volume isn't actionable and rises just by adding exercises. The 7-day average is the number worth reading.</p>
+      </div>
+      <div class="change">
+        <span class="was">Check-in, Sundays only</span>
+        <span class="now">Plan, two modes</span>
+        <p>Mid-week it shows where you stand and lets you change what's left. On check-in day it closes the week and builds the next.</p>
+      </div>
+      <div class="change">
+        <span class="was">One shared time budget</span>
+        <span class="now">Duration per day</span>
+        <p>Your long Saturday is a personal constraint, not a universal one. Time of day is only asked if you add the week to your calendar.</p>
+      </div>
+      <div class="change">
+        <span class="was">"Anything hurting?"</span>
+        <span class="now">Split by lifespan</span>
+        <p>Permanent limits live in your profile and are never retyped. The weekly box asks only what's true this week.</p>
+      </div>
+      <div class="change">
+        <span class="was">Sunday, hardcoded</span>
+        <span class="now">Your check-in day</span>
+        <p>A profile setting, defaulting to Sunday. Necessary the moment a second person trains on a different rhythm.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ LIFT ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Tab one</p>
+      <h2>Lift</h2>
+      <p class="note">
+        Opened standing in the gym doorway. One job: get you to the first set without reading.
+      </p>
+    </div>
+
+    <div class="mock-row">
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar">
+            <span class="wordmark">Saturday</span>
+            <span class="eyebrow">Week 6</span>
+          </div>
+          <div class="app-body">
+
+            <div class="today">
+              <span class="card-lbl">Tuesday · today</span>
+              <div>
+                <div class="title">Pull</div>
+                <div class="meta"><span class="num">5</span> exercises · <span class="num">30</span> min</div>
+              </div>
+              <button class="start" type="button">Start session</button>
+            </div>
+
+            <div class="week">
+              <div class="day upper done"><span class="dow">M</span><span class="dot"></span></div>
+              <div class="day upper now"><span class="dow">T</span><span class="dot"></span></div>
+              <div class="day"><span class="dow">W</span><span class="dot"></span></div>
+              <div class="day lower"><span class="dow">T</span><span class="dot"></span></div>
+              <div class="day"><span class="dow">F</span><span class="dot"></span></div>
+              <div class="day sat"><span class="dow">S</span><span class="dot"></span></div>
+              <div class="day"><span class="dow">S</span><span class="dot"></span></div>
+            </div>
+
+            <div class="tiles">
+              <div class="tile">
+                <span class="k">Weigh in</span>
+                <div class="weigh">
+                  <input type="text" inputmode="decimal" value="190.0" aria-label="Body weight in pounds">
+                  <span class="unit">lbs</span>
+                </div>
+                <span class="d">7-day avg 189.8</span>
+              </div>
+              <div class="tile">
+                <span class="k">This week</span>
+                <span class="v">1 of 4</span>
+                <span class="d">sessions done</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-hd">
+                <span class="card-lbl">Beat this today</span>
+                <span class="card-lbl">Last: 21 Sep</span>
+              </div>
+              <div class="beat">
+                <div class="beat-row">
+                  <div><div class="ex">Wide Grip Lat Pulldown</div><div class="was">was 120 × 12/12/10</div></div>
+                  <div class="target hold">120<small>hold · beat set 3</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Cable Row</div><div class="was">was 100 × 10/10/10</div></div>
+                  <div class="target up">102.5<small>earned</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Face Pull</div><div class="was">was 30 × 12/12/12</div></div>
+                  <div class="target up">35<small>earned</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Lateral Raise</div><div class="was">was 20 × 10/10/10</div></div>
+                  <div class="target up">22.5<small>earned</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Chest Press (Hammer)</div><div class="was">was 45 × 10/10/6</div></div>
+                  <div class="target hold">45<small>hold</small></div>
+                </div>
+              </div>
+            </div>
+
+            <button class="ask" type="button">
+              <span class="ico"></span>
+              <span>Shoulder's cranky — swap something?</span>
+            </button>
+
+          </div>
+          <div class="nav">
+            <div class="on">Lift</div>
+            <div>Plan</div>
+            <div>Review</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="annos">
+        <div class="anno key">
+          <span class="h">Weigh-in is an input, not a readout</span>
+          <p>
+            Tap the number, type, done — the morning weigh-in is a daily habit and shouldn't
+            cost a screen. What you <i>read</i> is the <b>7-day average</b>, because daily
+            weight is water and salt. Your own spreadsheet had that column; it just didn't
+            make it into round one.
+          </p>
+        </div>
+        <div class="anno key">
+          <span class="h">Ask sits at the bottom, pre-loaded with context</span>
+          <p>
+            It already knows today is Pull, which five lifts are on, and what your targets
+            are. No re-explaining. The placeholder is a real sentence rather than "Ask
+            anything", because a concrete example teaches what it's for.
+          </p>
+        </div>
+        <div class="anno">
+          <span class="h">"1 of 4" replaced volume</span>
+          <p>
+            Both are counts, but only one changes what you do next. Behind on sessions is
+            actionable; 120,285 lbs is trivia.
+          </p>
+        </div>
+        <div class="anno">
+          <span class="h">Sage still appears exactly once</span>
+          <p>
+            Today's session owns it. The Ask button is a dashed outline with a Mist dot
+            deliberately — present, clearly interactive, not competing for the tap.
+          </p>
+        </div>
+        <div class="anno mine">
+          <span class="h">Body fat is absent on purpose</span>
+          <p>
+            You flagged it as a later phase and that's right: photo estimates carry roughly
+            ±3–4% error, wider than a month's real change. It would read as noise, not
+            progress — so it waits for a method that can actually measure it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ PLAN: MID-WEEK ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Tab two, mode one</p>
+      <h2>Plan · mid-week</h2>
+      <p class="note">
+        Your best note. Opened on a Wednesday, this shows where you stand and lets you move
+        what's left — the thing that actually happens when basketball reschedules.
+      </p>
+    </div>
+
+    <div class="mock-pair">
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar">
+            <span class="wordmark">Plan</span>
+            <span class="eyebrow">Wed 30 Sep</span>
+          </div>
+          <div class="app-body">
+            <div class="step-title">This week</div>
+
+            <div class="banner ok">
+              <span class="t">On track</span>
+              <p>2 of 4 done, 2 to go, 4 days left. Both remaining sessions still fit.</p>
+            </div>
+
+            <div class="card">
+              <div class="sched">
+                <div class="sched-row">
+                  <span class="d">Mon</span>
+                  <div class="s">Push<em>12 sets · 28 min</em></div>
+                  <span class="flag done">Done</span>
+                </div>
+                <div class="sched-row">
+                  <span class="d">Tue</span>
+                  <div class="s">Pull<em>13 sets · 31 min</em></div>
+                  <span class="flag done">Done</span>
+                </div>
+                <div class="sched-row">
+                  <span class="d">Thu</span>
+                  <div class="s">Legs<em>4 exercises · 30 min</em></div>
+                  <span class="flag plan">Planned</span>
+                </div>
+                <div class="sched-row">
+                  <span class="d">Sat</span>
+                  <div class="s">Full body<em>7 exercises · 90 min</em></div>
+                  <span class="flag plan">Planned</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="k">Change what's left</span>
+              <div class="input">Basketball moved to Thursday — can legs go to Friday?</div>
+            </div>
+            <button class="cta" type="button">Adjust the week</button>
+
+            <button class="cta ghost" type="button">Plan next week</button>
+          </div>
+          <div class="nav">
+            <div>Lift</div>
+            <div class="on">Plan</div>
+            <div>Review</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar">
+            <span class="wordmark">Plan</span>
+            <span class="eyebrow">Wed 30 Sep</span>
+          </div>
+          <div class="app-body">
+            <div class="step-title">This week</div>
+
+            <div class="banner warn">
+              <span class="t">Two sessions at risk</span>
+              <p>2 of 4 done with 1 day left. Saturday's 90 minutes won't absorb both.</p>
+            </div>
+
+            <div class="sheet">
+              <span class="t">Close this week?</span>
+              <p>
+                Thursday's Legs and Saturday's Full body were never logged. Planning next
+                week marks this one complete and those two sessions as missed — they won't
+                count toward your progression.
+              </p>
+              <div class="card" style="padding: 12px;">
+                <div class="sched">
+                  <div class="sched-row">
+                    <span class="d">Thu</span>
+                    <div class="s">Legs</div>
+                    <span class="flag miss">Missed</span>
+                  </div>
+                  <div class="sched-row">
+                    <span class="d">Sat</span>
+                    <div class="s">Full body</div>
+                    <span class="flag miss">Missed</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <button class="cta ghost" type="button">Keep going</button>
+                <button class="cta" type="button">Close it</button>
+              </div>
+            </div>
+          </div>
+          <div class="nav">
+            <div>Lift</div>
+            <div class="on">Plan</div>
+            <div>Review</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annos" style="max-width: 62ch;">
+      <div class="anno key">
+        <span class="h">The status banner states a judgement, not a number</span>
+        <p>
+          "On track" versus "two sessions at risk" — computed from sessions remaining against
+          days left and the time each needs. A progress bar would make you do that arithmetic
+          yourself.
+        </p>
+      </div>
+      <div class="anno key">
+        <span class="h">"Change what's left" is a narrow model call</span>
+        <p>
+          It rewrites only the remaining days, not the whole week. Cheaper, faster, and it
+          can't accidentally undo sessions you've already logged.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">Closing the week names the consequence</span>
+        <p>
+          Not "are you sure?" but <b>which sessions get marked missed</b> and what that costs
+          — they stop counting toward progression. The schema already carries a
+          <b>superseded</b> state for the outgoing plan.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">"Plan next week" is a ghost button</span>
+        <p>
+          Mid-week, adjusting is the likely action and planning ahead is the rare one. The
+          weights flip on your check-in day.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ PLAN: NEXT WEEK ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Tab two, mode two</p>
+      <h2>Plan · next week</h2>
+      <p class="note">
+        Check-in day. Days and durations together, one box for what's changed, then the
+        generated week to review.
+      </p>
+    </div>
+
+    <div class="mock-pair">
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar">
+            <span class="wordmark">Next week</span>
+            <span class="eyebrow">Step 1 of 2</span>
+          </div>
+          <div class="step-rail"><span class="on"></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">When can you train?</div>
+
+            <div class="card">
+              <div>
+                <div class="dayrow">
+                  <div class="toggle"><span class="box on"></span><span class="nm">Monday</span></div>
+                  <button class="dur" type="button">30 min</button>
+                </div>
+                <div class="dayrow">
+                  <div class="toggle"><span class="box on"></span><span class="nm">Tuesday</span></div>
+                  <button class="dur" type="button">30 min</button>
+                </div>
+                <div class="dayrow off">
+                  <div class="toggle"><span class="box"></span><span class="nm">Wednesday</span></div>
+                  <button class="dur muted" type="button">—</button>
+                </div>
+                <div class="dayrow">
+                  <div class="toggle"><span class="box on"></span><span class="nm">Thursday</span></div>
+                  <button class="dur" type="button">30 min</button>
+                </div>
+                <div class="dayrow off">
+                  <div class="toggle"><span class="box"></span><span class="nm">Friday</span></div>
+                  <button class="dur muted" type="button">—</button>
+                </div>
+                <div class="dayrow">
+                  <div class="toggle"><span class="box on"></span><span class="nm">Saturday</span></div>
+                  <button class="dur hero" type="button">90 min</button>
+                </div>
+                <div class="dayrow off">
+                  <div class="toggle"><span class="box"></span><span class="nm">Sunday</span></div>
+                  <button class="dur muted" type="button">—</button>
+                </div>
+              </div>
+              <p class="note" style="font-size: 12px;">Carried over from last week. Tap a duration to change it.</p>
+            </div>
+
+            <div class="field">
+              <span class="k">Anything changed this week?</span>
+              <div class="input">Left shoulder cranky on presses. Volleyball Thursday night.</div>
+            </div>
+            <p class="note" style="font-size: 12px;">
+              Your gym's equipment and long-term limits are in your profile — no need to repeat them.
+            </p>
+
+            <button class="cta" type="button">Build my week</button>
+          </div>
+          <div class="nav">
+            <div>Lift</div>
+            <div class="on">Plan</div>
+            <div>Review</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar">
+            <span class="wordmark">Next week</span>
+            <span class="eyebrow">Step 2 of 2</span>
+          </div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span></div>
+          <div class="app-body">
+            <div class="step-title">Your week</div>
+
+            <div class="card">
+              <span class="card-lbl">Mon · Push · 30 min</span>
+              <div class="beat">
+                <div class="beat-row">
+                  <div><div class="ex">Incline Press (Hammer)</div><div class="was">4 × 6–8</div></div>
+                  <div class="target up">50<small>earned</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Cable Lateral Raise</div><div class="was">3 × 12</div></div>
+                  <div class="target up">12.5<small>earned</small></div>
+                </div>
+                <div class="beat-row">
+                  <div><div class="ex">Tricep Pushdown (Rope)</div><div class="was">3 × 10</div></div>
+                  <div class="target hold">47.5<small>hold</small></div>
+                </div>
+              </div>
+              <p class="note" style="font-size: 12px; color: var(--muted);">
+                Shoulder press dropped this week — you said presses aggravate the left
+                shoulder. Hammer incline keeps the chest work with a fixed path.
+              </p>
+            </div>
+
+            <div class="card" style="opacity: 0.72;">
+              <span class="card-lbl">Tue · Pull · 30 min</span>
+              <p class="note" style="font-size: 13px;">5 exercises · Lat Pulldown holds at 120</p>
+            </div>
+
+            <div class="card" style="opacity: 0.72;">
+              <span class="card-lbl">Fri · Legs · 30 min</span>
+              <p class="note" style="font-size: 13px;">Moved off Thursday — volleyball</p>
+            </div>
+
+            <button class="cta" type="button">Start this week</button>
+            <button class="ask" type="button">
+              <span class="ico"></span>
+              <span>Change something before I commit</span>
+            </button>
+            <button class="cta ghost" type="button">Add to calendar</button>
+          </div>
+          <div class="nav">
+            <div>Lift</div>
+            <div class="on">Plan</div>
+            <div>Review</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annos" style="max-width: 62ch;">
+      <div class="anno key">
+        <span class="h">Days and durations on one row</span>
+        <p>
+          Checkbox plus duration, pre-filled from last week, so the common Sunday is
+          confirming rather than entering. Your 90-minute Saturday is just a value you set,
+          not a rule baked into the app.
+        </p>
+      </div>
+      <div class="anno key">
+        <span class="h">Time of day is never asked here</span>
+        <p>
+          Your suggestion, and it's better than what I had. It's only requested behind
+          <b>Add to calendar</b>, where the reason is obvious. And once you've used the timer
+          a while, <b>set_logs.logged_at</b> already knows you train around 7am — so it can
+          suggest times instead of asking.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">The plan explains itself</span>
+        <p>
+          The note under Monday says <i>why</i> shoulder press is gone. That's the coaching
+          voice from your tracker, and it's the part a generic app never has — it requires
+          knowing what you said last Sunday.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">One expanded day, the rest collapsed</span>
+        <p>
+          Reviewing four full sessions on a phone is a wall. The first is open, the others
+          are one line each with the detail that matters.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ OPEN ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Still open</p>
+      <h2>Three questions</h2>
+    </div>
+    <div class="qs">
+      <div class="q">
+        <span class="n">01</span>
+        <h3>What's in Review?</h3>
+        <p>
+          The one tab we haven't discussed. My instinct: per-lift strength curves, a personal
+          records list, and body-weight trend — the "am I actually getting stronger" view, on
+          a month-plus horizon. Nothing weekly, since Plan owns that.
+        </p>
+      </div>
+      <div class="q">
+        <span class="n">02</span>
+        <h3>Does a missed session really not count?</h3>
+        <p>
+          Closing the week marks unlogged sessions missed and excludes them from progression.
+          The alternative is carrying them forward. Excluding is simpler and honest, but it
+          means a travel week shows as a gap forever.
+        </p>
+      </div>
+      <div class="q">
+        <span class="n">03</span>
+        <h3>Rename the app?</h3>
+        <p>
+          Repo, titles, and metadata still say "Personal Trainer". You've settled on Saturday
+          Fitness — confirm and I'll change it everywhere while it's four files, not forty.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>

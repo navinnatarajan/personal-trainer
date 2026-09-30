@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens ported verbatim from Navin_Week1_Tracker.html, which is the established
+ * visual language for this project: warm paper rather than white, brass accent, and
+ * monospace reserved for numbers. Not reinvented here.
+ *
+ * Three theme states, matching the original:
+ *   :root                                     -> light (the default)
+ *   prefers-color-scheme: dark, unless the user forced light
+ *   [data-theme="dark"]                       -> explicit override wins either way
+ */
+
+:root {
+  --paper: #f4f2ed;
+  --card: #ffffff;
+  --card-2: #fbfaf7;
+  --sunken: #efede7;
+
+  --ink: #16181c;
+  --ink-2: #4a4f57;
+  --steel: #767c86;
+
+  --line: #dedad1;
+  --line-2: #eae7e0;
+
+  --brass: #8f6512;
+  --brass-soft: #f3e7cc;
+
+  --done: #2c7349;
+  --done-soft: #dfeee5;
+  --done-line: #a8cfb9;
+
+  --alert: #a33b2a;
+  --alert-soft: #f7e3de;
+
+  --shadow:
+    0 1px 2px rgba(20, 22, 26, 0.05), 0 10px 26px rgba(20, 22, 26, 0.05);
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1013;
+    --card: #171a1f;
+    --card-2: #1c2026;
+    --sunken: #121519;
+
+    --ink: #ecedef;
+    --ink-2: #b4b9c1;
+    --steel: #858c96;
+
+    --line: #2b3038;
+    --line-2: #232830;
+
+    --brass: #d9a441;
+    --brass-soft: #33280f;
+
+    --done: #59b888;
+    --done-soft: #152a1f;
+    --done-line: #2f5b44;
+
+    --alert: #e37e6b;
+    --alert-soft: #2c1913;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0e1013;
+  --card: #171a1f;
+  --card-2: #1c2026;
+  --sunken: #121519;
+
+  --ink: #ecedef;
+  --ink-2: #b4b9c1;
+  --steel: #858c96;
+
+  --line: #2b3038;
+  --line-2: #232830;
+
+  --brass: #d9a441;
+  --brass-soft: #33280f;
+
+  --done: #59b888;
+  --done-soft: #152a1f;
+  --done-line: #2f5b44;
+
+  --alert: #e37e6b;
+  --alert-soft: #2c1913;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+/* Expose the tokens as Tailwind utilities: bg-paper, text-ink, border-line, etc. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-sunken: var(--sunken);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-steel: var(--steel);
+
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+
+  --color-brass: var(--brass);
+  --color-brass-soft: var(--brass-soft);
+
+  --color-done: var(--done);
+  --color-done-soft: var(--done-soft);
+  --color-done-line: var(--done-line);
+
+  --color-alert: var(--alert);
+  --color-alert-soft: var(--alert-soft);
+
+  /* Oswald for display, Plex Sans for UI, Plex Mono for every number. */
+  --font-display: var(--font-oswald), "IBM Plex Sans", sans-serif;
+  --font-sans: var(--font-plex-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --radius-card: 10px;
+  --shadow-card: var(--shadow);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* Numbers should be comparable down a column, not proportionally spaced. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
