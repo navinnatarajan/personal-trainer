@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-steel">
-          Personal Trainer
+          Saturday Fitness
         </p>
         <h1 className="mt-3 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-ink">
           Train with a plan

@@ -117,6 +117,48 @@ begin
     null; -- expected
   end;
 
+  -- A planned session that never happened is recorded, not absent: repeatedly missing
+  -- a day is signal for plan generation.
+  insert into sessions (user_id, date, session_name, status)
+  values (navin, '2026-08-29', 'Legs', 'missed');
+  select count(*) into cnt from sessions where user_id = navin and status = 'missed';
+  if cnt <> 1 then
+    raise exception 'FAIL: missed session was not recorded (got %)', cnt;
+  end if;
+
+  -- Excluding a lift must never destroy its history. This is the same rule the
+  -- importer's --prune guard enforces: stop programming it, keep the data.
+  update exercises set preference = 'excluded' where id = ex_id;
+  select count(*) into cnt from set_logs where exercise_id = ex_id;
+  if cnt <> 5 then
+    raise exception 'FAIL: excluding an exercise lost its logged sets (% remain)', cnt;
+  end if;
+
+  -- ...and an excluded lift drops out of the programmable set.
+  select count(*) into cnt
+  from exercises where user_id = navin and preference <> 'excluded';
+  if cnt <> 0 then
+    raise exception 'FAIL: excluded exercise still counted as programmable (%)', cnt;
+  end if;
+  update exercises set preference = 'neutral' where id = ex_id;
+
+  -- Check-in day must be a valid ISO weekday.
+  begin
+    update profiles set checkin_dow = 8 where id = navin;
+    raise exception 'FAIL: checkin_dow 8 was accepted';
+  exception when check_violation then
+    null; -- expected
+  end;
+
+  -- Per-day duration, with usual_time left null until calendar sync is opted into.
+  insert into day_preferences (user_id, dow, can_train, duration_min)
+  values (navin, 6, true, 90);
+  select count(*) into cnt
+  from day_preferences where user_id = navin and dow = 6 and usual_time is null;
+  if cnt <> 1 then
+    raise exception 'FAIL: day_preferences row not stored as expected';
+  end if;
+
   raise notice 'PASS: generated columns and constraints behave correctly';
 end $$;
 
@@ -140,6 +182,11 @@ declare
 begin
   select count(*) into visible_sets from set_logs;
   select count(*) into visible_sessions from sessions;
+  -- new table must be locked down too, not just the original ones
+  perform 1 from day_preferences limit 1;
+  if found then
+    raise exception 'FAIL: RLS leaked day_preferences to another user';
+  end if;
   if visible_sets <> 0 or visible_sessions <> 0 then
     raise exception
       'FAIL: RLS leaked another user''s data (% set_logs, % sessions visible)',

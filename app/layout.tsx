@@ -27,7 +27,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Personal Trainer",
+  title: "Saturday Fitness",
   description: "Weekly training plans that actually progress.",
 };
 
