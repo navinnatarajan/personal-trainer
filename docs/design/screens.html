@@ -253,6 +253,14 @@
   }
   .trio button.on { background: var(--sage); border-color: var(--sage); color: var(--ink); }
 
+  .dow7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .dow7 button {
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+    border-radius: var(--r-sm); padding: 11px 2px; font-family: var(--mono);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+  }
+  .dow7 button.on { background: var(--sage); border-color: var(--sage); color: var(--ink); font-weight: 600; }
+
   .numrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .numfield { display: flex; flex-direction: column; gap: 6px; }
   .numfield .k { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
@@ -600,11 +608,19 @@
             </div>
 
             <div class="field"><span class="k">Check in with me on</span></div>
-            <div class="trio">
-              <button type="button">Fri</button>
-              <button type="button">Sat</button>
-              <button class="on" type="button">Sun</button>
+            <div class="dow7">
+              <button type="button">Mo</button>
+              <button type="button">Tu</button>
+              <button type="button">We</button>
+              <button type="button">Th</button>
+              <button type="button">Fr</button>
+              <button type="button">Sa</button>
+              <button class="on" type="button">Su</button>
             </div>
+            <p class="note" style="font-size: 12px;">
+              When we review the week and plan the next one. Any day — a week doesn't have
+              to start on Monday.
+            </p>
 
             <button class="cta" type="button">Next</button>
           </div>
@@ -709,6 +725,15 @@
           difference and serves none of them. Ranking gives it a tie-breaker — and surfacing
           the trade-off up front means slow strength gains read as <i>expected</i> rather
           than as failure.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">Check-in day sits with the training days</span>
+        <p>
+          Same screen, same question in the user's head: when does your week happen. All
+          seven days are offered rather than a weekend shortlist — shift workers and anyone
+          whose week resets mid-week need their own, and
+          <b>profiles.checkin_dow</b> already accepts any of them.
         </p>
       </div>
       <div class="anno">
