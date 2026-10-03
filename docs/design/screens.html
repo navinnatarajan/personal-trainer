@@ -229,18 +229,100 @@
     .start, .cta, .dur, .ask { transition: filter 140ms ease; }
     .start:hover, .cta:hover, .dur:hover, .ask:hover { filter: brightness(1.08); }
   }
+
+  /* --- onboarding controls --- */
+  .seg { display: grid; gap: 7px; }
+  .seg-opt {
+    display: flex; align-items: flex-start; gap: 11px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 12px 13px; cursor: pointer;
+    font-family: var(--sans); text-align: left; width: 100%;
+  }
+  .seg-opt.on { background: color-mix(in srgb, var(--sage) 15%, var(--surface)); border-color: color-mix(in srgb, var(--sage) 60%, var(--line)); }
+  .seg-opt .dotr { width: 17px; height: 17px; border-radius: 999px; border: 1.5px solid var(--line); flex: 0 0 auto; margin-top: 1px; }
+  .seg-opt.on .dotr { border-color: var(--sage); background: radial-gradient(circle, var(--sage) 0 45%, transparent 48%); }
+  .seg-opt .tx { display: flex; flex-direction: column; gap: 2px; }
+  .seg-opt .tt { font-size: 14px; font-weight: 500; }
+  .seg-opt .ss { font-size: 12px; color: var(--muted); }
+
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .trio button {
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+    border-radius: var(--r-sm); padding: 12px 6px; font-family: var(--sans);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .trio button.on { background: var(--sage); border-color: var(--sage); color: var(--ink); }
+
+  .numrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .numfield { display: flex; flex-direction: column; gap: 6px; }
+  .numfield .k { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .numbox {
+    display: flex; align-items: baseline; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 11px 12px;
+  }
+  .numbox input {
+    appearance: none; background: transparent; border: 0; padding: 0; width: 100%;
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 17px;
+    font-weight: 600; color: var(--bone); min-width: 0;
+  }
+  .numbox .u { font-family: var(--mono); font-size: 11px; color: var(--muted); flex: 0 0 auto; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .chk { display: flex; align-items: center; gap: 9px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 11px; cursor: pointer; font-family: var(--sans); text-align: left; }
+  .chk.on { border-color: color-mix(in srgb, var(--sage) 55%, var(--line)); background: color-mix(in srgb, var(--sage) 12%, var(--surface)); }
+  .chk .nm { font-size: 13px; font-weight: 500; }
+  .chk.on .nm { color: var(--bone); }
+  .chk:not(.on) .nm { color: var(--muted); }
+
+  .ranked { display: flex; flex-direction: column; gap: 7px; }
+  .rank {
+    display: grid; grid-template-columns: 24px 1fr auto; gap: 11px; align-items: center;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 12px 13px;
+  }
+  .rank.on { border-color: color-mix(in srgb, var(--sage) 55%, var(--line)); background: color-mix(in srgb, var(--sage) 12%, var(--surface)); }
+  .rank .ord { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--sage); text-align: center; }
+  .rank .ord.off { color: var(--line); }
+  .rank .nm { font-size: 14px; font-weight: 500; }
+  .rank .nm em { display: block; font-style: normal; font-size: 11px; color: var(--muted); }
+  .rank .grip { color: var(--line); font-size: 14px; letter-spacing: 0.1em; }
+
+  .conflict {
+    background: color-mix(in srgb, var(--clay) 13%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--clay) 45%, var(--line));
+    border-radius: var(--r-sm); padding: 11px 13px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .conflict .t { font-size: 12px; font-weight: 700; color: var(--clay); letter-spacing: 0.02em; }
+  .conflict p { font-size: 12px; color: var(--muted); max-width: none; }
+
+  .area {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 12px 13px;
+    font-size: 14px; color: var(--muted); min-height: 86px; line-height: 1.45;
+  }
+  .skip { background: none; border: 0; color: var(--muted); font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; padding: 10px; width: 100%; }
+
+  .finish { display: flex; flex-direction: column; gap: 14px; padding: 8px 0 0; }
+  .finish .big { font-size: 27px; font-weight: 600; letter-spacing: -0.03em; text-transform: uppercase; line-height: 1.02; }
+  .rir { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 15px; display: flex; flex-direction: column; gap: 9px; }
+  .rir-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+  .rir-row:first-of-type { border-top: 0; }
+  .rir-row .ex { font-size: 13px; font-weight: 500; }
+  .rir-row .rx { font-family: var(--mono); font-size: 12px; color: var(--mist); white-space: nowrap; }
 </style>
 
 <div class="wrap">
 
   <header class="masthead">
-    <p class="eyebrow">Saturday Fitness · design review · round two</p>
+    <p class="eyebrow">Saturday Fitness · design review · round three</p>
     <h1>Ink and Sage</h1>
     <p class="lede">
-      Revised after your notes. Three tabs instead of four, the coach moved into context,
-      and Plan is now useful every day of the week rather than only on Sundays. Still
-      populated from your real database — the Sep 21 Pull session, and targets computed by
-      the actual progression rules.
+      Onboarding added, built against the seven-layer profile model — including the two
+      layers that don't get asked at all. Plus the earlier revisions: three tabs, the coach
+      moved into context, and Plan useful every day rather than only on Sundays. Still
+      populated from your real database.
     </p>
     <div class="locked">
       <span class="chip">Base <b>Ink #0C1014</b></span>
@@ -248,6 +330,8 @@
       <span class="chip new">Lift · Plan · Review</span>
       <span class="chip new">Coach is contextual</span>
       <span class="chip new">Plan works mid-week</span>
+      <span class="chip new">Onboarding · 6 steps</span>
+      <span class="chip">No voice in v1</span>
     </div>
   </header>
 
@@ -289,6 +373,318 @@
         <span class="was">Sunday, hardcoded</span>
         <span class="now">Your check-in day</span>
         <p>A profile setting, defaulting to Sunday. Necessary the moment a second person trains on a different rhythm.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ ONBOARDING ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">First run</p>
+      <h2>Onboarding</h2>
+      <p class="note">
+        Six steps, five of them under twenty seconds. Built against the seven-layer profile
+        model — which means it deliberately asks for <i>less</i> than the model needs,
+        because two of those layers are computed rather than asked.
+      </p>
+    </div>
+
+    <div class="mock-pair">
+
+      <!-- 1 · YOU -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">1 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">About you</div>
+            <p class="note" style="font-size: 13px;">Set once. Never asked again.</p>
+
+            <div class="trio">
+              <button class="on" type="button">Male</button>
+              <button type="button">Female</button>
+              <button type="button">Rather not</button>
+            </div>
+
+            <div class="numrow">
+              <div class="numfield">
+                <span class="k">Height</span>
+                <div class="numbox"><input value="6'3&quot;" aria-label="Height"></div>
+              </div>
+              <div class="numfield">
+                <span class="k">Born</span>
+                <div class="numbox"><input value="1990" aria-label="Birth year"></div>
+              </div>
+            </div>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 · WHERE YOU ARE -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">2 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">Where you are now</div>
+
+            <div class="numrow">
+              <div class="numfield">
+                <span class="k">Weight</span>
+                <div class="numbox"><input value="190" aria-label="Weight"><span class="u">lbs</span></div>
+              </div>
+              <div class="numfield">
+                <span class="k">Waist</span>
+                <div class="numbox"><input placeholder="—" aria-label="Waist"><span class="u">in</span></div>
+              </div>
+            </div>
+            <p class="note" style="font-size: 12px;">
+              Waist is optional but worth it — waist-to-height tracks leanness far better
+              than BMI, which would call you overweight at 6'3" the moment you add muscle.
+            </p>
+
+            <div class="field"><span class="k">How long have you been lifting?</span></div>
+            <div class="seg">
+              <button class="seg-opt" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">Just starting</span><span class="ss">Under 6 months — we'll start light and find your weights</span></span>
+              </button>
+              <button class="seg-opt on" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">A while now</span><span class="ss">6 months to 2 years</span></span>
+              </button>
+              <button class="seg-opt" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">Experienced</span><span class="ss">2+ years, know my numbers</span></span>
+              </button>
+            </div>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 · YOUR GYM -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">3 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">Your gym</div>
+            <p class="note" style="font-size: 13px;">
+              What's actually available. Nothing gets programmed that you can't load.
+            </p>
+
+            <div class="grid2">
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Barbell &amp; rack</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Dumbbells</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Cables</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Machines</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Leg press</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Hack squat</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Pull-up bar</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Kettlebells</span></button>
+            </div>
+
+            <div class="field">
+              <span class="k">Anything else?</span>
+              <div class="input">Hammer Strength incline, seated calf raise</div>
+            </div>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 · GOALS -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">4 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">What are you after?</div>
+            <p class="note" style="font-size: 13px;">
+              Pick up to three, then drag them into priority order. Order matters — these
+              pull against each other.
+            </p>
+
+            <div class="ranked">
+              <div class="rank on"><span class="ord">1</span><span class="nm">Lose body fat<em>Target 16%</em></span><span class="grip">⠿</span></div>
+              <div class="rank on"><span class="ord">2</span><span class="nm">V-taper<em>Shoulders and back width</em></span><span class="grip">⠿</span></div>
+              <div class="rank on"><span class="ord">3</span><span class="nm">Build muscle<em>Visible definition</em></span><span class="grip">⠿</span></div>
+              <div class="rank"><span class="ord off">—</span><span class="nm">Build strength</span><span class="grip">⠿</span></div>
+              <div class="rank"><span class="ord off">—</span><span class="nm">Build endurance</span><span class="grip">⠿</span></div>
+            </div>
+
+            <div class="conflict">
+              <span class="t">These two compete</span>
+              <p>
+                Losing fat and building muscle pull opposite ways. Fat loss is first, so
+                expect strength to climb slowly — that's the trade, not a plateau.
+              </p>
+            </div>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 · YOUR WEEK -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">5 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">When can you train?</div>
+
+            <div class="card">
+              <div>
+                <div class="dayrow"><div class="toggle"><span class="box on"></span><span class="nm">Monday</span></div><button class="dur" type="button">30 min</button></div>
+                <div class="dayrow"><div class="toggle"><span class="box on"></span><span class="nm">Tuesday</span></div><button class="dur" type="button">30 min</button></div>
+                <div class="dayrow off"><div class="toggle"><span class="box"></span><span class="nm">Wednesday</span></div><button class="dur muted" type="button">—</button></div>
+                <div class="dayrow"><div class="toggle"><span class="box on"></span><span class="nm">Thursday</span></div><button class="dur" type="button">30 min</button></div>
+                <div class="dayrow off"><div class="toggle"><span class="box"></span><span class="nm">Friday</span></div><button class="dur muted" type="button">—</button></div>
+                <div class="dayrow"><div class="toggle"><span class="box on"></span><span class="nm">Saturday</span></div><button class="dur hero" type="button">90 min</button></div>
+                <div class="dayrow off"><div class="toggle"><span class="box"></span><span class="nm">Sunday</span></div><button class="dur muted" type="button">—</button></div>
+              </div>
+            </div>
+
+            <div class="field"><span class="k">Check in with me on</span></div>
+            <div class="trio">
+              <button type="button">Fri</button>
+              <button type="button">Sat</button>
+              <button class="on" type="button">Sun</button>
+            </div>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6 · LIMITS -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">6 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+          <div class="app-body">
+            <div class="step-title">Anything off limits?</div>
+
+            <div class="field"><span class="k">Won't do</span></div>
+            <div class="pills">
+              <button class="pill on" type="button">Deadlifts</button>
+              <button class="pill on" type="button">RDLs</button>
+              <button class="pill" type="button">Barbell squats</button>
+              <button class="pill" type="button">Overhead press</button>
+              <button class="pill" type="button">Running</button>
+              <button class="pill" type="button">Burpees</button>
+            </div>
+
+            <div class="field">
+              <span class="k">Injuries or anything long-standing</span>
+              <div class="area">Left shoulder clicks on overhead pressing. Play basketball Tuesdays and volleyball some Thursdays, so legs the day after is rough.</div>
+            </div>
+            <p class="note" style="font-size: 12px;">
+              Only things that stay true. Week-to-week niggles go in your check-in, so you
+              never retype this.
+            </p>
+
+            <button class="cta" type="button">Build my first week</button>
+            <button class="skip" type="button">Skip for now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7 · CALIBRATION -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Saturday</span><span class="eyebrow">Week 1</span></div>
+          <div class="app-body">
+            <div class="finish">
+              <span class="card-lbl" style="color: var(--sage);">You're set up</span>
+              <div class="big">Week one finds<br>your weights</div>
+              <p class="note" style="font-size: 14px;">
+                I don't know what you can lift yet, so this week isn't about beating
+                anything. Work up until the last two reps feel hard, log it, and that
+                becomes your baseline.
+              </p>
+            </div>
+
+            <div class="rir">
+              <span class="card-lbl">Monday · Push · 30 min</span>
+              <div class="rir-row"><span class="ex">Incline Press (Hammer)</span><span class="rx">3 × 8 @ 2 RIR</span></div>
+              <div class="rir-row"><span class="ex">DB Shoulder Press</span><span class="rx">3 × 8 @ 2 RIR</span></div>
+              <div class="rir-row"><span class="ex">Lateral Raise</span><span class="rx">3 × 12 @ 2 RIR</span></div>
+              <div class="rir-row"><span class="ex">Tricep Pushdown</span><span class="rx">3 × 10 @ 2 RIR</span></div>
+            </div>
+
+            <p class="note" style="font-size: 12px;">
+              <b style="color: var(--bone);">2 RIR</b> means stop with about two reps left
+              in the tank. From week two the numbers come from what you actually did.
+            </p>
+
+            <button class="cta" type="button">Start Monday</button>
+          </div>
+          <div class="nav"><div class="on">Lift</div><div>Plan</div><div>Review</div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="annos" style="max-width: 62ch;">
+      <div class="anno key">
+        <span class="h">Week one is calibration, and it says so</span>
+        <p>
+          Every starting weight we could recommend is a guess. Rather than hide that behind
+          a confident number, week one prescribes <b>reps at 2 RIR</b> and lets the user
+          find the weight — then <i>their</i> number becomes the baseline. The code already
+          behaves this way: <b>progressionState</b> returns
+          <b>establish_baseline</b> for any lift with no history.
+        </p>
+      </div>
+      <div class="anno key">
+        <span class="h">What we deliberately don't ask</span>
+        <p>
+          No BMI, no ethnicity, no "how many days do you <i>want</i> to train", no
+          endurance self-rating. The first two are weak proxies for things we measure
+          directly; the last two are answered far better by observing what you actually do.
+          <b>Don't ask what you can compute.</b>
+        </p>
+      </div>
+      <div class="anno key">
+        <span class="h">Goals are ranked, and the conflict is named out loud</span>
+        <p>
+          A flat list of goals gives the model nothing to arbitrate with, so it splits the
+          difference and serves none of them. Ranking gives it a tie-breaker — and surfacing
+          the trade-off up front means slow strength gains read as <i>expected</i> rather
+          than as failure.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">Step 6 is skippable; steps 1–5 aren't</span>
+        <p>
+          Everything before it is needed to generate a plan at all. Constraints can arrive
+          later through check-ins, so blocking setup on them would cost completions for
+          nothing.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">Equipment gates exercise selection, hard</span>
+        <p>
+          Unticking Hack squat means it never appears, no matter how well it fits. A plan
+          containing a lift you can't load is worse than a slightly worse plan.
+        </p>
+      </div>
+      <div class="anno mine">
+        <span class="h">Voice deferred, not rejected</span>
+        <p>
+          Onboarding runs once per user. Set logging runs thousands of times — chalky hands,
+          mid-rest, two numbers. That's where voice earns its build cost, and it's a
+          post-v1 feature once there's real usage to judge it against.
+        </p>
       </div>
     </div>
   </section>
