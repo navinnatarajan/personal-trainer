@@ -332,6 +332,7 @@
       <span class="chip new">Plan works mid-week</span>
       <span class="chip new">Onboarding · 6 steps</span>
       <span class="chip">No voice in v1</span>
+      <span class="chip new">Equipment asked only if limited</span>
     </div>
   </header>
 
@@ -475,25 +476,70 @@
           <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
           <div class="app-body">
             <div class="step-title">Your gym</div>
+
+            <div class="seg">
+              <button class="seg-opt on" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">Full gym</span><span class="ss">Racks, machines, cables — the usual commercial setup</span></span>
+              </button>
+              <button class="seg-opt" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">Limited setup</span><span class="ss">Some of it. I'll tell you what's there</span></span>
+              </button>
+              <button class="seg-opt" type="button">
+                <span class="dotr"></span>
+                <span class="tx"><span class="tt">Home, basics only</span><span class="ss">Dumbbells, a bench, maybe bands</span></span>
+              </button>
+            </div>
+
+            <div class="field"><span class="k">What do you prefer lifting with?</span></div>
+            <div class="trio">
+              <button type="button">Machines</button>
+              <button class="on" type="button">A mix</button>
+              <button type="button">Free weights</button>
+            </div>
+            <p class="note" style="font-size: 12px;">
+              A lean, not a rule — you'll still see some of both.
+            </p>
+
+            <button class="cta" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3b · CONDITIONAL CHECKLIST -->
+      <div class="phone">
+        <div class="screen">
+          <div class="app-bar"><span class="wordmark">Setup</span><span class="eyebrow">3 of 6</span></div>
+          <div class="step-rail"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+          <div class="app-body">
+            <div class="step-title">What's available?</div>
             <p class="note" style="font-size: 13px;">
-              What's actually available. Nothing gets programmed that you can't load.
+              Only shown if you picked a limited setup. Nothing gets programmed that you
+              can't load.
             </p>
 
             <div class="grid2">
-              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Barbell &amp; rack</span></button>
               <button class="chk on" type="button"><span class="box on"></span><span class="nm">Dumbbells</span></button>
-              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Cables</span></button>
-              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Machines</span></button>
-              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Leg press</span></button>
-              <button class="chk" type="button"><span class="box"></span><span class="nm">Hack squat</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Bench</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Barbell &amp; rack</span></button>
               <button class="chk on" type="button"><span class="box on"></span><span class="nm">Pull-up bar</span></button>
-              <button class="chk" type="button"><span class="box"></span><span class="nm">Kettlebells</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Cables</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Leg press</span></button>
+              <button class="chk" type="button"><span class="box"></span><span class="nm">Machines</span></button>
+              <button class="chk on" type="button"><span class="box on"></span><span class="nm">Bands</span></button>
             </div>
 
             <div class="field">
-              <span class="k">Anything else?</span>
-              <div class="input">Hammer Strength incline, seated calf raise</div>
+              <span class="k">Anything unusual?</span>
+              <div class="input">Adjustable bench, 5–50 lb dumbbells</div>
             </div>
+
+            <p class="note" style="font-size: 12px;">
+              You can also correct this later — any exercise has a
+              <b style="color: var(--bone);">"my gym doesn't have this"</b> option, which
+              updates your profile.
+            </p>
 
             <button class="cta" type="button">Next</button>
           </div>
@@ -608,22 +654,24 @@
               <div class="big">Week one finds<br>your weights</div>
               <p class="note" style="font-size: 14px;">
                 I don't know what you can lift yet, so this week isn't about beating
-                anything. Work up until the last two reps feel hard, log it, and that
-                becomes your baseline.
+                anything. For each exercise, work the weight up until you could manage
+                <b style="color: var(--bone);">about two more reps</b> but no more. Log it,
+                and that becomes your starting number.
               </p>
             </div>
 
             <div class="rir">
               <span class="card-lbl">Monday · Push · 30 min</span>
-              <div class="rir-row"><span class="ex">Incline Press (Hammer)</span><span class="rx">3 × 8 @ 2 RIR</span></div>
-              <div class="rir-row"><span class="ex">DB Shoulder Press</span><span class="rx">3 × 8 @ 2 RIR</span></div>
-              <div class="rir-row"><span class="ex">Lateral Raise</span><span class="rx">3 × 12 @ 2 RIR</span></div>
-              <div class="rir-row"><span class="ex">Tricep Pushdown</span><span class="rx">3 × 10 @ 2 RIR</span></div>
+              <div class="rir-row"><span class="ex">Incline Press (Hammer)</span><span class="rx">3 × 8 · 2 left in tank</span></div>
+              <div class="rir-row"><span class="ex">DB Shoulder Press</span><span class="rx">3 × 8 · 2 left in tank</span></div>
+              <div class="rir-row"><span class="ex">Lateral Raise</span><span class="rx">3 × 12 · 2 left in tank</span></div>
+              <div class="rir-row"><span class="ex">Tricep Pushdown</span><span class="rx">3 × 10 · 2 left in tank</span></div>
             </div>
 
             <p class="note" style="font-size: 12px;">
-              <b style="color: var(--bone);">2 RIR</b> means stop with about two reps left
-              in the tank. From week two the numbers come from what you actually did.
+              <b style="color: var(--bone);">"2 left in tank"</b> means stop while you could
+              still do roughly two more. Too light? Add weight and go again — that's the
+              point of this week. From week two the numbers come from what you actually did.
             </p>
 
             <button class="cta" type="button">Start Monday</button>
@@ -639,7 +687,7 @@
         <span class="h">Week one is calibration, and it says so</span>
         <p>
           Every starting weight we could recommend is a guess. Rather than hide that behind
-          a confident number, week one prescribes <b>reps at 2 RIR</b> and lets the user
+          a confident number, week one prescribes <b>reps with two left in the tank</b> and lets the user
           find the weight — then <i>their</i> number becomes the baseline. The code already
           behaves this way: <b>progressionState</b> returns
           <b>establish_baseline</b> for any lift with no history.
@@ -671,11 +719,32 @@
           nothing.
         </p>
       </div>
-      <div class="anno">
-        <span class="h">Equipment gates exercise selection, hard</span>
+      <div class="anno key">
+        <span class="h">Equipment is a gate; preference is a lean</span>
         <p>
-          Unticking Hack squat means it never appears, no matter how well it fits. A plan
-          containing a lift you can't load is worse than a slightly worse plan.
+          Two different kinds of constraint, and conflating them would be a real bug. If you
+          can't load it, it never appears — no matter how well it fits. But
+          <b>"mostly machines"</b> biases selection without deleting every free-weight lift,
+          which is what a filter would do and no coach would.
+        </p>
+      </div>
+      <div class="anno key">
+        <span class="h">The equipment checklist is conditional</span>
+        <p>
+          Full-gym users tick all eight boxes, which is eight taps producing no information
+          — and people genuinely can't recall their gym's inventory anyway. So: one
+          high-level question, the checklist only for limited setups, and a
+          <b>"my gym doesn't have this"</b> action on any exercise that writes back to the
+          profile. Your own library grew that way — Chest Press (Hammer) and Tricep
+          Extension (Machine) both appeared weeks in.
+        </p>
+      </div>
+      <div class="anno">
+        <span class="h">No jargon before its definition</span>
+        <p>
+          The calibration week says <b>"2 left in tank"</b> rather than "2 RIR". The
+          abbreviation is only ever needed during week one, so it never has to be taught —
+          after that, prescriptions are weights.
         </p>
       </div>
       <div class="anno mine">
