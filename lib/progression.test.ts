@@ -164,6 +164,26 @@ describe("progressionState — other cases", () => {
     expect(state.reason).toMatch(/reps in reserve/);
   });
 
+  it("holds the weight when a set's reps went unreported", () => {
+    // The real case from the source data: "set 3 done but rep count not reported".
+    // Progressing here would prescribe a weight that was never confirmed.
+    const history: ExerciseSession[] = [
+      {
+        exerciseId: shoulderPress.id,
+        date: new Date("2026-08-24"),
+        targetReps: "8",
+        sets: [
+          { setNumber: 1, weightLbs: 45, reps: 8, rir: 1 },
+          { setNumber: 2, weightLbs: 45, reps: 8, rir: 1 },
+          { setNumber: 3, weightLbs: 45, reps: null, rir: null },
+        ],
+      },
+    ];
+    const state = progressionState(history, shoulderPress, noTarget);
+    expect(state.action).toBe("add_reps");
+    expect(state.nextWeight).toBe(45);
+  });
+
   it("never adds weight to a bodyweight exercise", () => {
     const cleared = progressionState(
       [session([12, 12, 12], 0, "10+", new Date("2026-08-24"), pullup.id)],

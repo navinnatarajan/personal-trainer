@@ -38,10 +38,11 @@ npm run dev                     # http://localhost:3000
 | Command | Does |
 |---|---|
 | `npm run dev` | Dev server (Turbopack) |
-| `npm test` | Vitest, 81 tests, no network or database needed |
+| `npm test` | Vitest, 86 tests, no network or database needed |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run check:env` | Validates `.env.local` shape without printing values |
+| `npm run test:integration` | Hits the live Supabase project and prints the assembled coach context |
 | `./scripts/verify-schema.sh` | Applies migrations to a throwaway local Postgres and asserts behaviour |
 | `node scripts/import-xlsx.mjs` | Dry-run import of the training spreadsheet |
 
@@ -83,6 +84,7 @@ lib/
   session/lifecycle.ts  start / pause / resume / finish — pure, tested
   coach/types.ts        the contract for "what the coach knows"
   coach/derive.ts       derived facts (observed behaviour, unmet instructions)
+  coach/assemble.ts     queries the database and composes the context
   supabase/{client,server,env}.ts
   health/               Phase 2, empty
 supabase/
@@ -217,6 +219,18 @@ contract: a fact absent from those types cannot be acted on, whatever the databa
 - **Median** session length, not mean, so one 88-minute Saturday does not redefine a
   30-minute norm.
 - **Waist-to-height**, not BMI, which penalises height and muscle.
+
+`assemble.ts` is the only impure part: it queries, then hands everything to the pure
+functions. Two traps live here.
+
+**Never compute a date with `toISOString()`.** That is UTC, and between local midnight and
+UTC midnight it returns tomorrow — which shifts the history window and changes which day
+"today" is. Use `todayInTimezone(profile.timezone)`. This bug shipped once and reported 11
+sessions as 10; both the code and its test shared the same wrong clock, so they agreed.
+
+**Rep targets are inferred for imported history**, since logs record what was achieved
+rather than what was prescribed. The inference biases toward "earned" and stops being used
+once plans come from the app and `planned_exercises.target_reps` is populated.
 
 ---
 

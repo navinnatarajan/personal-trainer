@@ -25,7 +25,13 @@ export interface SetLog {
   exerciseId: string;
   setNumber: number;
   weightLbs: number;
-  reps: number;
+  /**
+   * Nullable, and load-bearing. The source data contains "set done but rep count not
+   * reported", and lib/progression.ts treats an unreported rep count as *not* clearing
+   * the range — so incomplete logging can never earn a weight increase. Typing this as
+   * `number` would make the type lie about the case the rule exists for.
+   */
+  reps: number | null;
   /** Reps in reserve. Null when not reported — common in the historical data. */
   rir: number | null;
   loggedAt: Date;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { todayInTimezone } from "./assemble";
 import {
   daysBetween,
   deriveMeasuredState,
@@ -309,5 +310,29 @@ describe("deriveUnmetInstructions", () => {
 
   it("returns nothing with no history", () => {
     expect(deriveUnmetInstructions([], 1)).toEqual([]);
+  });
+});
+
+describe("todayInTimezone", () => {
+  it("returns the local date, not the UTC one, late in the evening", () => {
+    // 22:40 on 5 Oct in New York is already 02:40 on 6 Oct in UTC. Using UTC here is
+    // what silently dropped a session from the history window.
+    const evening = new Date("2026-10-06T02:40:00Z");
+    expect(todayInTimezone("America/New_York", evening)).toBe("2026-10-05");
+    expect(evening.toISOString().slice(0, 10)).toBe("2026-10-06"); // the wrong answer
+  });
+
+  it("returns the local date early in the morning too", () => {
+    const morning = new Date("2026-10-05T11:00:00Z");
+    expect(todayInTimezone("America/New_York", morning)).toBe("2026-10-05");
+  });
+
+  it("handles a timezone ahead of UTC", () => {
+    const t = new Date("2026-10-05T20:00:00Z");
+    expect(todayInTimezone("Asia/Kolkata", t)).toBe("2026-10-06");
+  });
+
+  it("formats as YYYY-MM-DD with zero padding", () => {
+    expect(todayInTimezone("UTC", new Date("2026-01-02T12:00:00Z"))).toBe("2026-01-02");
   });
 });
