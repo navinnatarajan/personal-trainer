@@ -11,9 +11,19 @@ and an Excel file moved between them by copy-paste.
 
 ## Status
 
-Phase 0 — foundation. See [`docs/PLAN.md`](docs/PLAN.md) for the build plan,
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how the pieces fit, and
-[`docs/DECISIONS.md`](docs/DECISIONS.md) for why things are the way they are.
+Phase 0 complete — auth, schema, imported history, and the progression and timing logic
+are working and verified. Phase 1 (the weekly loop) is in progress.
+
+## Documentation
+
+| | |
+|---|---|
+| [`docs/DEVELOPERS.md`](docs/DEVELOPERS.md) | Setup, layout, schema, conventions — start here |
+| [`docs/PRODUCT.md`](docs/PRODUCT.md) | What this is, who for, and the reasoning behind it |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces fit, and why Supabase over GCP |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Every non-obvious call, with its reasoning |
+| [`docs/PLAN.md`](docs/PLAN.md) | Build sequence and phase scope |
+| [`docs/design/screens.html`](docs/design/screens.html) | Current screen designs |
 
 ## Stack
 
