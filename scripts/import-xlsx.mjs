@@ -148,15 +148,42 @@ function inferIncrement(name, baseline, nextTarget) {
   if (delta > 0 && delta <= 5) return delta;
 
   const n = name.toLowerCase();
-  if (/pull-up|dip|chin/.test(n)) return 0; // bodyweight
+  if (isBodyweightName(name)) return 0;
   if (/\(bb\)|barbell|deadlift|squat/.test(n)) return 5;
-  if (/press|leg press|hack/.test(n)) return 5;
+  if (/press|hack/.test(n)) return 5;
   if (/db |dumbbell|curl|raise|fly/.test(n)) return 2.5;
   return 2.5; // cables and machines mostly move in 2.5s
 }
 
-const isBodyweight = (name, baseline) =>
-  /pull-up|dip|chin/i.test(name) || (baseline ?? 0) === 0;
+/**
+ * Movements with no external load.
+ *
+ * Word-anchored deliberately. An earlier version used /pull-up|dip|chin/ and matched
+ * "ma-CHIN-e", so every machine exercise was classified as bodyweight — which stops
+ * lib/progression.ts from ever adding weight to them. A substring regex over
+ * user-visible names needs boundaries.
+ */
+const BODYWEIGHT_PATTERNS = [
+  /\bpull[-\s]?ups?\b/i,
+  /\bchin[-\s]?ups?\b/i,
+  /\bdips?\b/i,
+  /\bpush[-\s]?ups?\b/i,
+  /\bbodyweight\b/i,
+];
+
+const isBodyweightName = (name) => BODYWEIGHT_PATTERNS.some((p) => p.test(name));
+
+/**
+ * Whether an exercise carries no external load.
+ *
+ * Logged data outranks the name: anything with a non-zero weight recorded against it is
+ * loaded, whatever it is called. A baseline of 0 means "not measured yet", not
+ * "bodyweight" — conflating those is what wrongly caught Cable Fly / Pec Deck.
+ */
+function isBodyweight(name, loggedWeights) {
+  if (loggedWeights.some((w) => w > 0)) return false;
+  return isBodyweightName(name);
+}
 
 // --- read the workbook -------------------------------------------------------
 
@@ -164,7 +191,13 @@ const wb = new ExcelJS.Workbook();
 await wb.xlsx.readFile(XLSX_PATH);
 
 /** Dashboard rows stop at the WEEKLY ROLL-UP marker; everything after is a summary. */
-function readExercises() {
+function readExercises(setRows) {
+  const weightsByExercise = new Map();
+  for (const s of setRows) {
+    const list = weightsByExercise.get(s.exercise) ?? [];
+    list.push(s.weight_lbs);
+    weightsByExercise.set(s.exercise, list);
+  }
   const ws = wb.getWorksheet("Dashboard");
   const rows = [];
   let stop = false;
@@ -179,7 +212,7 @@ function readExercises() {
     const muscleGroup = str(row.values[2]) || "Other";
     const baseline = num(row.values[3]);
     const nextTarget = num(row.values[4]);
-    const bw = isBodyweight(name, baseline);
+    const bw = isBodyweight(name, weightsByExercise.get(name) ?? []);
     rows.push({
       name,
       muscle_group: muscleGroup,
@@ -241,8 +274,8 @@ function readBodyMetrics() {
   return rows;
 }
 
-const exercises = readExercises();
 const setRows = readWorkoutLog();
+const exercises = readExercises(setRows);
 const bodyRows = readBodyMetrics();
 
 const sessionKeys = [...new Set(setRows.map((s) => `${s.date}|${s.session_name ?? ""}`))];

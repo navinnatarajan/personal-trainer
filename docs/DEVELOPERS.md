@@ -39,6 +39,7 @@ npm run dev                     # http://localhost:3000
 |---|---|
 | `npm run dev` | Dev server (Turbopack) |
 | `npm test` | Vitest, 86 tests, no network or database needed |
+| `npm run test:integration` (plan) | Makes a real API call, ~$0.15, and prints the generated week |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run check:env` | Validates `.env.local` shape without printing values |
@@ -85,6 +86,8 @@ lib/
   coach/types.ts        the contract for "what the coach knows"
   coach/derive.ts       derived facts (observed behaviour, unmet instructions)
   coach/assemble.ts     queries the database and composes the context
+  coach/prompts.ts      system prompt + context rendering (cache boundary lives here)
+  coach/generate-plan.ts the one model call, with a deterministic fallback
   supabase/{client,server,env}.ts
   health/               Phase 2, empty
 supabase/
@@ -227,6 +230,12 @@ functions. Two traps live here.
 UTC midnight it returns tomorrow — which shifts the history window and changes which day
 "today" is. Use `todayInTimezone(profile.timezone)`. This bug shipped once and reported 11
 sessions as 10; both the code and its test shared the same wrong clock, so they agreed.
+
+**Exercise classification trusts data over names.** `unit = 'BW'` is decided by whether a
+non-zero weight has ever been logged, *then* by a word-anchored name pattern. A substring
+regex once matched "ma-CHIN-e" and marked every machine exercise bodyweight, which stops
+progression from ever adding weight to them. A zero baseline means "not measured", never
+"bodyweight".
 
 **Rep targets are inferred for imported history**, since logs record what was achieved
 rather than what was prescribed. The inference biases toward "earned" and stops being used

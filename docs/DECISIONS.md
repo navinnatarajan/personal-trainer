@@ -125,6 +125,38 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### A substring regex classified every machine exercise as bodyweight
+**2026-10-10** — The importer decided bodyweight with
+`/pull-up|dip|chin/i.test(name)`. **`/chin/` matches "ma-CHIN-e."** So Rear Delt Fly
+(Machine), Preacher Curl (Machine), and Tricep Extension (Machine) were all stored with
+`unit = 'BW'` and `increment_lbs = 0` — and `lib/progression.ts` refuses to add weight to
+a bodyweight movement, so those lifts would have been stuck on "add reps" permanently.
+Rear Delt Fly (Machine) had 40 lb × 12/12/12 logged against it.
+
+A second, independent bug in the same function: `baseline === 0` was treated as a
+bodyweight signal, but zero means *not measured yet*. That wrongly caught Cable Fly /
+Pec Deck.
+
+Fixes, in order of how much they matter:
+
+1. **Logged data outranks the name.** Anything with a non-zero weight recorded against it
+   is loaded, whatever it is called. This is the signal that should have been primary — a
+   name is a guess, a logged weight is evidence.
+2. Patterns are word-anchored (`/\bchin[-\s]?ups?\b/i`). A substring regex over
+   user-visible names needs boundaries.
+3. A zero baseline leaves the unit as `lb` and lets the calibration week establish it.
+
+Seven exercises were marked bodyweight; two actually are. Found because a generated plan
+said *"Bodyweight, so there's nothing to add but reps"* about a machine — the validator
+flagged the weight mismatch and reading the note explained why.
+
+### Bodyweight exercises take a null weight, not zero
+**2026-10-10** — `validatePlan` demanded `target_weight === nextWeight`, and
+`progression.ts` reports `nextWeight = 0` for bodyweight movements, so a correct plan
+prescribing `null` was flagged as wrong. Null is the honest answer for a movement with no
+external load; zero is a number that means nothing. The validator now accepts either for
+`unit = 'BW'` and rejects any actual weight.
+
 ### Dates are computed in the user's timezone, never UTC
 **2026-10-05** — The context assembler reported 11 training sessions as 10. The cause:
 `new Date().toISOString().slice(0, 10)` returns the **UTC** date, and at 22:40 Eastern it

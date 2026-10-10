@@ -72,7 +72,7 @@ export async function assembleCoachContext(
       db
         .from("profiles")
         .select(
-          "display_name, goals, lifecycle_stage, training_level, height_in, weight_lbs, sex, birth_year, equipment, gym_name, durable_constraints, checkin_dow, timezone",
+          "display_name, goals, lifecycle_stage, training_level, height_in, weight_lbs, sex, birth_year, equipment, gym_name, gym_type, style_preference, durable_constraints, checkin_dow, timezone",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -319,13 +319,13 @@ export async function assembleCoachContext(
       birthYear: profile.birth_year ?? null,
     },
     environment: {
-      // gym_type lands in a later migration; inferred from equipment breadth until then.
-      gymType: null,
+      gymType: (profile.gym_type ?? null) as CoachContext["environment"]["gymType"],
       equipment: (profile.equipment ?? []) as string[],
       gymName: profile.gym_name ?? null,
     },
     preferences: {
-      stylePreference: null,
+      stylePreference:
+        (profile.style_preference ?? null) as CoachContext["preferences"]["stylePreference"],
       excluded,
       favourites,
       durableConstraints: profile.durable_constraints ?? null,
@@ -343,6 +343,7 @@ export async function assembleCoachContext(
     observed,
     episodic,
     progression,
+    exerciseNames: Object.fromEntries(nameById),
     programmable,
     windowWeeks,
     generatedAt: new Date().toISOString(),

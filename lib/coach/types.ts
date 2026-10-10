@@ -172,6 +172,12 @@ export interface CoachContext {
   episodic: EpisodicMemory;
   /** Computed by lib/progression.ts. Facts, not judgements — the model is told these. */
   progression: ProgressionState[];
+  /**
+   * Exercise id to name. ProgressionState references ids because that is what the logs
+   * carry, but a prompt has to say "Cable Row". Kept as a map rather than denormalised
+   * onto each state so there is exactly one source for the name.
+   */
+  exerciseNames: Record<string, string>;
   /** Exercises available to program: in the library, not excluded, equipment present. */
   programmable: Array<{
     name: string;
