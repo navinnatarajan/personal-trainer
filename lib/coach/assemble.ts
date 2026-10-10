@@ -23,7 +23,7 @@ import {
   deriveUnmetInstructions,
   markStatementRecency,
 } from "./derive";
-import type { CoachContext, EpisodicMemory } from "./types";
+import type { CoachContext, EpisodicMemory, GoalFacts } from "./types";
 
 /** How far back the observed and episodic layers look. */
 export const WINDOW_WEEKS = 4;
@@ -72,7 +72,7 @@ export async function assembleCoachContext(
       db
         .from("profiles")
         .select(
-          "display_name, goals, lifecycle_stage, training_level, height_in, weight_lbs, sex, birth_year, equipment, gym_name, gym_type, style_preference, durable_constraints, checkin_dow, timezone",
+          "display_name, goals, lifecycle_stage, training_level, height_in, weight_lbs, sex, birth_year, equipment, gym_name, gym_type, style_preference, split_preference, durable_constraints, checkin_dow, timezone",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -338,6 +338,8 @@ export async function assembleCoachContext(
       ordered: (profile.goals ?? []) as string[],
       lifecycleStage: profile.lifecycle_stage,
       trainingLevel: profile.training_level,
+      splitPreference:
+        (profile.split_preference ?? "coach_decides") as GoalFacts["splitPreference"],
     },
     stated: {
       days: trainingDays.map((d) => ({ dow: d.dow, durationMin: d.duration_min })),

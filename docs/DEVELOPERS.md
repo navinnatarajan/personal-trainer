@@ -109,7 +109,7 @@ docs/                   this guide, PRODUCT, ARCHITECTURE, DECISIONS, PLAN, desi
 
 ```
 profiles           identity, goals (ordered enum[]), training level, check-in day,
-                   durable constraints
+                   split + style preference, durable constraints
 exercises          per-user library; `movement_type` drives session order,
                    `preference` includes anchor (must appear 2x/week) and excluded
 exercise_targets   baseline and next target per exercise

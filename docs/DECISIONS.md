@@ -125,6 +125,37 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Split preference, incline priority, and compounds as a guideline
+**2026-10-10** — Three changes from reviewing generated output as the user rather than as
+the builder.
+
+**`profiles.split_preference`** (push/pull/legs, upper/lower, full-body, coach-decides)
+shapes which sessions exist before exercise selection happens. Full-body is offered
+deliberately for beginners — one push, one pull and one leg compound per session gives
+higher frequency per muscle group, more practice per movement, and it still works when
+only two sessions actually happen in a week.
+
+**Incline pressing is marked `favourite`, flat is not.** Goal-aligned rather than
+arbitrary: upper-chest thickness contributes to the shelf a v-taper reads from, where flat
+pressing is more general mass. `favourite` is deliberately weaker than `anchor` — it
+biases a substitution when two exercises do the same job, rather than demanding frequency.
+
+**The two-compound cap became a guideline**, and the user's reasoning was better than the
+rule. A pull-up with no logged history is a few working-up sets, not a full systemic load,
+so counting it as a loaded compound is wrong. The validator now only counts compounds
+*with history* and warns above three.
+
+**Session size excludes the core finisher.** Four exercises in 30 minutes, plus warmup and
+optional core. The arithmetic is tight — one compound at 120s rest plus three accessories
+at 75s plus warmup and core comes to about 33 minutes — but the user's actual median
+session is 31 minutes against a 30-minute budget, so it describes what already happens
+rather than an aspiration. The consequence is that accessory rest has to stay near 75
+seconds, which the existing time check enforces.
+
+Still open: the 90-minute Saturday budget. Generation has now three times chosen to fill
+or overrun it, and the longest real session on record is 88 minutes against a median of
+31. Setting it to 60 would stop both sides pretending.
+
 ### Session structure is enforced, not prompted
 **2026-10-10** — The first generated plans were well-reasoned but structurally wrong in
 ways prose instructions would not reliably fix. Lateral Raise — 28 logged sets, the

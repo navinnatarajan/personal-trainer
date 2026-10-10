@@ -76,6 +76,15 @@ const CORE_EXERCISES = [
  */
 const ANCHORS = new Set(["Lateral Raise"]);
 
+/**
+ * Preferred over an equivalent alternative when the coach has a choice.
+ *
+ * Incline pressing over flat is goal-aligned rather than arbitrary: upper-chest thickness
+ * contributes to the shelf a v-taper reads from, while flat bench is more general mass.
+ * Weaker than an anchor — this biases a substitution, it does not demand frequency.
+ */
+const FAVOURITES = new Set(["Incline Bench (BB)", "Incline Press (Hammer)"]);
+
 const e = env();
 
 if (!APPLY) {
@@ -102,12 +111,19 @@ const plan = rows.map((r) => ({
   id: r.id,
   name: r.name,
   movement_type: COMPOUNDS.has(r.name) ? "compound" : "accessory",
-  preference: ANCHORS.has(r.name) ? "anchor" : r.preference,
+  preference: ANCHORS.has(r.name)
+    ? "anchor"
+    : FAVOURITES.has(r.name)
+      ? "favourite"
+      : r.preference === "excluded"
+        ? "excluded"
+        : "neutral",
 }));
 
 const compounds = plan.filter((p) => p.movement_type === "compound");
 console.log(`${rows.length} exercises: ${compounds.length} compound, ${rows.length - compounds.length} accessory`);
 console.log(`anchors: ${plan.filter((p) => p.preference === "anchor").map((p) => p.name).join(", ") || "(none)"}`);
+console.log(`favourites: ${plan.filter((p) => p.preference === "favourite").map((p) => p.name).join(", ") || "(none)"}`);
 console.log(`core to add: ${CORE_EXERCISES.map((c) => c.name).join(", ")}`);
 
 // Anything in COMPOUNDS that is not in the library means the list has drifted from the

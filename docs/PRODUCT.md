@@ -264,7 +264,8 @@ because two layers are computed rather than asked.
 3. **Your gym** — type, plus machines/mix/free-weights lean. Equipment checklist shown
    *only* for limited setups, because a full-gym user ticking eight boxes conveys nothing
    and nobody recalls their gym's inventory anyway
-4. **Goals** — up to three, **ranked**, with the conflict named on screen
+4. **Goals** — up to three, **ranked**, with the conflict named on screen, plus the
+   **split preference**: push/pull/legs, upper/lower, full-body, or let the coach decide
 5. **Your week** — days, per-day duration, and the check-in day
 6. **Anything off limits** — won't-do list and durable constraints. Skippable
 
@@ -276,6 +277,11 @@ Every session follows the same shape, enforced by the validator rather than hope
 **one or two compounds first**, then one to three accessories, then optionally one core
 movement as a finisher. Warmup time is reserved *inside* the budget, never added to it —
 previously a 30-minute plan meant 40 minutes in practice.
+
+The split preference shapes which sessions exist before any exercise is chosen. Full-body
+is offered for beginners on purpose — one push, one pull and one leg compound per session
+means higher frequency per muscle group and more practice per movement, and it still works
+when only two sessions actually happen.
 
 Anchor lifts are a stronger thing than a favourite: a lift the user treats as
 non-negotiable, which must appear at least twice a week. Usually it is whatever is most

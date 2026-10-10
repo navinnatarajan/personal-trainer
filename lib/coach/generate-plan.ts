@@ -227,10 +227,17 @@ export function validatePlan(plan: WeekPlan, ctx: CoachContext): string[] {
     if (compoundCount === 0) {
       warnings.push(`${session.session_name} on ${session.dow} has no compound lift.`);
     }
-    if (compoundCount > 2) {
+    // One or two is the target, but a compound being calibrated is a few working-up sets
+    // rather than a full systemic load, so it does not cost what an established one costs.
+    // Only flag genuinely loaded compounds.
+    const loadedCompounds = session.exercises.filter((e) => {
+      const meta = allowed.get(e.name);
+      return meta?.movementType === "compound" && meta.hasHistory;
+    }).length;
+    if (loadedCompounds > 3) {
       warnings.push(
-        `${session.session_name} on ${session.dow} has ${compoundCount} compounds.` +
-          ` Two is the maximum — a third means none of them gets done properly.`,
+        `${session.session_name} on ${session.dow} has ${loadedCompounds} loaded compounds.` +
+          ` Three is the practical ceiling.`,
       );
     }
 
@@ -251,12 +258,17 @@ export function validatePlan(plan: WeekPlan, ctx: CoachContext): string[] {
       );
     }
 
-    // Exercise count against the budget. Beyond this a plan stops getting followed.
+    // Exercise count against the budget, excluding the core finisher — a plank is not an
+    // exercise in the sense that competes for the session's time. Four in 30 minutes is
+    // tight but matches what actually gets done; the time check below catches the case
+    // where rest periods make it impossible.
+    const nonCore = session.exercises.length - types.filter((x) => x === "core").length;
     const maxExercises = session.time_budget_min <= 35 ? 4 : session.time_budget_min <= 65 ? 6 : 7;
-    if (session.exercises.length > maxExercises) {
+    if (nonCore > maxExercises) {
       warnings.push(
-        `${session.session_name} on ${session.dow} has ${session.exercises.length} exercises` +
-          ` in ${session.time_budget_min} min. Around ${maxExercises} is the ceiling.`,
+        `${session.session_name} on ${session.dow} has ${nonCore} exercises` +
+          ` (excluding core) in ${session.time_budget_min} min.` +
+          ` Around ${maxExercises} is the ceiling.`,
       );
     }
 

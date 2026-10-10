@@ -68,6 +68,11 @@ export interface GoalFacts {
   ordered: string[];
   lifecycleStage: string;
   trainingLevel: string;
+  /**
+   * How the week is divided. Shapes which sessions exist before exercise selection
+   * happens. 'coach_decides' leaves it to goals, available days and history.
+   */
+  splitPreference: "push_pull_legs" | "upper_lower" | "full_body" | "coach_decides";
 }
 
 /** What the user says they can do. Compare against ObservedBehaviour, which is the truth. */
