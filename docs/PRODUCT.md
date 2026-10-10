@@ -64,6 +64,11 @@ partner, not a cheerleader.
 
 **Success looks like:** *"I stopped opening the spreadsheet."*
 
+A note on budgets: time budgets describe what the user *actually does*, not what they hope
+to. The Saturday budget started at 90 minutes, the generated plans dutifully filled it, and
+the longest session ever recorded was 88 minutes against a median of 31. It is now 60. A
+budget nobody meets produces plans nobody finishes.
+
 ---
 
 ## How it works

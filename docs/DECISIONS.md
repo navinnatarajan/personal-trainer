@@ -152,9 +152,19 @@ session is 31 minutes against a 30-minute budget, so it describes what already h
 rather than an aspiration. The consequence is that accessory rest has to stay near 75
 seconds, which the existing time check enforces.
 
-Still open: the 90-minute Saturday budget. Generation has now three times chosen to fill
-or overrun it, and the longest real session on record is 88 minutes against a median of
-31. Setting it to 60 would stop both sides pretending.
+**Saturday dropped from 90 to 60 minutes** (2026-10-10). Generation had three times filled
+or overrun 90, while the longest real session on record is 88 minutes against a median of
+31 — the budget was aspirational and the plans were honouring the aspiration.
+
+Dropping it was not sufficient on its own: the next generation produced seven exercises
+against a six ceiling. The exercise limit was stated in the structure guidance but absent
+from the hard constraints, and the model treated the ceiling as a number to round up from.
+Restating it as a constraint — "these are ceilings, not targets; if a session needs one
+more exercise, it needs fewer sets on the ones already there" — produced a clean week with
+zero warnings.
+
+Worth generalising: a number that matters belongs in the constraints section, not the
+advice section. Guidance gets weighed; constraints get followed.
 
 ### Session structure is enforced, not prompted
 **2026-10-10** — The first generated plans were well-reasoned but structurally wrong in
