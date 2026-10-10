@@ -48,6 +48,12 @@ export interface PreferenceFacts {
   stylePreference: "machines" | "mix" | "free_weights" | null;
   /** Exercise names the user has ruled out. Their history is kept; they are not programmed. */
   excluded: string[];
+  /**
+   * Non-negotiable lifts. Stronger than a preference: these must appear at least twice a
+   * week. Lateral Raise is the motivating case — most-trained lift in the library, and the
+   * highest-leverage movement for a v-taper, yet the first generated plan gave it one slot.
+   */
+  anchors: string[];
   favourites: string[];
   /** Equipment gaps, standing injuries, anything true until changed. */
   durableConstraints: string | null;
@@ -185,6 +191,8 @@ export interface CoachContext {
     unit: string;
     incrementLbs: number;
     preference: string;
+    /** Drives session ordering: compounds early while fresh, core as a finisher. */
+    movementType: "compound" | "accessory" | "core";
     hasHistory: boolean;
   }>;
   /** How many weeks of behaviour the observed and episodic layers cover. */

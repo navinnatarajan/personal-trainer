@@ -1,0 +1,257 @@
+<title>Two Weeks, One History</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --ink: #0C1014; --surface: #141A20; --surface-2: #19212a;
+    --line: #2B353D; --line-soft: #202a33;
+    --muted: #9BA39C; --bone: #DEDECB;
+    --sage: #CFD5B4; --mist: #7F9BA0; --clay: #D08A6B; --moss: #7FA06A;
+    --sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ink); color: var(--bone);
+    font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 60px; }
+
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0; font-size: clamp(36px, 6.5vw, 58px); font-weight: 500; letter-spacing: -0.035em; line-height: 0.99; text-transform: uppercase; text-wrap: balance; }
+  h2 { margin: 0; font-size: 25px; font-weight: 600; letter-spacing: -0.02em; text-transform: uppercase; }
+  h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  p { margin: 0; max-width: 64ch; }
+  .lede { font-size: 17px; font-weight: 300; }
+  .note { font-size: 14px; color: var(--muted); }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+
+  .head { display: flex; flex-direction: column; gap: 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 11px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface); }
+  .chip b { color: var(--bone); }
+  hr.rule { height: 1px; background: var(--line-soft); border: 0; margin: 0; }
+
+  section { display: flex; flex-direction: column; gap: 24px; }
+  .sec-head { display: flex; flex-direction: column; gap: 9px; }
+
+  /* two-up comparison */
+  .pair { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); align-items: start; }
+
+  .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .scen {
+    border-radius: 18px; padding: 17px; display: flex; flex-direction: column; gap: 11px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .scen.a { border-color: color-mix(in srgb, var(--mist) 50%, var(--line)); }
+  .scen.b { border-color: color-mix(in srgb, var(--clay) 55%, var(--line)); }
+  .scen .tag { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+  .scen.a .tag { color: var(--mist); }
+  .scen.b .tag { color: var(--clay); }
+  .scen .said { font-size: 14px; line-height: 1.45; font-style: italic; color: var(--bone); }
+
+  .wknote {
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    border-radius: 14px; padding: 15px; font-size: 13.5px; line-height: 1.55; color: var(--bone);
+  }
+
+  .day { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .day-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .day-hd .d { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--bone); }
+  .day-hd .b { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .day .hl { font-size: 12.5px; color: var(--muted); }
+  .ex { display: flex; flex-direction: column; }
+  .ex-row { display: grid; grid-template-columns: 1fr auto; gap: 9px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--line-soft); }
+  .ex-row:first-child { border-top: 0; }
+  .ex-row .n { font-size: 13px; }
+  .ex-row .n em { font-style: normal; font-family: var(--mono); font-size: 10px; color: var(--muted); display: block; }
+  .ex-row .w { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 600; white-space: nowrap; text-align: right; }
+  .w.find { color: var(--mist); font-weight: 400; }
+  .w.up { color: var(--moss); }
+
+  .pulled { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pulled span { font-family: var(--mono); font-size: 11px; padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--clay) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--clay) 40%, var(--line)); color: var(--clay); }
+
+  /* findings */
+  .finds { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .find { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 17px; display: flex; flex-direction: column; gap: 9px; }
+  .find.good { border-left: 3px solid var(--moss); }
+  .find.watch { border-left: 3px solid var(--clay); }
+  .find .lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; }
+  .find.good .lbl { color: var(--moss); }
+  .find.watch .lbl { color: var(--clay); }
+  .find p { font-size: 13.5px; color: var(--muted); max-width: none; }
+  .find blockquote { margin: 0; padding-left: 11px; border-left: 2px solid var(--line); font-size: 13px; color: var(--bone); line-height: 1.5; }
+
+  .ask { background: var(--surface); border: 1px solid color-mix(in srgb, var(--sage) 40%, var(--line)); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .ask .lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--sage); }
+  .ask ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .ask li { font-size: 14px; color: var(--muted); }
+  .ask li b { color: var(--bone); font-weight: 600; }
+
+  .wu { font-size: 12px; color: var(--mist); line-height: 1.45; }
+  .wu b { color: var(--bone); font-weight: 600; }
+  .ok { font-family: var(--mono); font-size: 11px; color: var(--moss); padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--moss) 40%, var(--line)); border-radius: 999px; align-self: flex-start; }
+  .warns { display: flex; flex-direction: column; gap: 6px; }
+  .wn { font-family: var(--mono); font-size: 11.5px; line-height: 1.45; color: var(--clay); background: color-mix(in srgb, var(--clay) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--clay) 35%, var(--line)); border-radius: 10px; padding: 9px 11px; }
+  code { font-family: var(--mono); font-size: 12px; color: var(--bone); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+
+  <header class="head">
+    <p class="eyebrow">Saturday Fitness · generated output</p>
+    <h1>Two weeks,<br>one history</h1>
+    <p class="lede">
+      The same 155 logged sets, the same 37-lift library, the same computed progression —
+      and two completely different weeks, because the one free-text box said something
+      different. Both from <span class="num">claude-opus-5</span>, after session structure,
+      anchor lifts, warmup and core became enforced rules rather than hopes.
+    </p>
+    <div class="meta">
+      <span class="chip">A: <b>2,444</b> in / <b>7,331</b> out</span>
+      <span class="chip">B: <b>2,507</b> in / <b>9,496</b> out</span>
+      <span class="chip"><b>~$0.20</b> each</span>
+      <span class="chip">warnings: <b>1</b> / <b>1</b></span>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">After the structure fix</p>
+      <h2>Round two</h2>
+      <p class="note">
+        Same two check-in notes, regenerated after session structure, anchor lifts, warmup
+        and core work became enforced rules rather than hopes. Lateral Raise now appears
+        <b>2×</b> in A and <b>2×</b> in B — it appeared once in each before.
+      </p>
+    </div>
+
+    <div class="pair">
+      <div class="col">
+        <div class="scen a">
+          <span class="tag">Scenario A · shoulder + volleyball</span>
+          <p class="said">"Left shoulder is a bit cranky on overhead pressing. Volleyball Thursday evening."</p>
+        </div>
+        <div class="warns"><div class="wn">! Pull on Tue has 3 compounds. Two is the maximum — a third means none of them gets done properly.</div></div>
+        <div class="wknote">The priority this week is simply showing up four times — 2 sessions in the last 4 weeks and a 19-day gap is the only thing actually holding progress back, not the weight selection. Because of the cranky left shoulder I have removed DB Shoulder Press entirely and left overhead cable work out; flat and machine pressing stay, since they load the shoulder in a much friendlier range, and lateral raises stay because they are your anchor lift — just capped at shoulder height, no higher. If the shoulder is painful at rest, at night, or during normal daily use, get it looked at by a physio or doctor rather than training through it; I am not in a position to tell you what it is. Thursday is deliberately short, back-and-shoulder-health focused with zero leg work, so you arrive at volleyball fresh, and all the heavy leg work sits on Saturday where it has room. Every earned increase is the smallest step available — after 19 days off, treat the first set of each lift as a test: if it moves badly, stay at last week&#x27;s weight and log it honestly.</div>
+        <div class="day"><div class="day-hd"><span class="d">MON · Push (no overhead)</span><span class="b">30m · warmup 8m</span></div><p class="hl">Flat Bench at 140 after three weeks off the bar</p><p class="wu"><b>Warmup:</b> Band pull-aparts and slow scap push-ups, then empty bar bench x10 and two ramp sets at 95 and 120 lb.</p><div class="ex"><div class="ex-row"><span class="n">Flat Bench (BB)<em>3 × 5-7</em></span><span class="w ">140</span></div><div class="ex-row"><span class="n">Chest Press (Hammer)<em>3 × 8-10</em></span><span class="w ">45</span></div><div class="ex-row"><span class="n">Lateral Raise<em>3 × 8-10</em></span><span class="w ">22.5</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">TUE · Pull</span><span class="b">30m · warmup 5m</span></div><p class="hl">Find your pull-up number while fresh</p><p class="wu"><b>Warmup:</b> Two light lat pulldown sets and a few slow dead hangs to wake the lats and scapulae up before pull-ups.</p><div class="ex"><div class="ex-row"><span class="n">Pull-Up<em>3 × 3-6, stopping two reps short of failure</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Cable Row<em>3 × 8-10</em></span><span class="w ">102.5</span></div><div class="ex-row"><span class="n">Wide Grip Lat Pulldown<em>3 × 10-12</em></span><span class="w ">120</span></div><div class="ex-row"><span class="n">Rear Delt Fly (Machine)<em>3 × 10-12</em></span><span class="w ">45</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">THU · Back width and shoulder health (pre-volleyball)</span><span class="b">30m · warmup 5m</span></div><p class="hl">Short, no legs, nothing that costs you at volleyball</p><p class="wu"><b>Warmup:</b> Band pull-aparts and two very light pulldown sets; nothing that tires the shoulder before tonight.</p><div class="ex"><div class="ex-row"><span class="n">Mag Grip Pulldown<em>3 × 8-10, leaving two reps in the tank</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Lateral Raise<em>3 × 8-10</em></span><span class="w ">22.5</span></div><div class="ex-row"><span class="n">Face Pull<em>3 × 12-15</em></span><span class="w ">35</span></div><div class="ex-row"><span class="n">Plank<em>3 × 30-45 seconds</em></span><span class="w find">find it</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">SAT · Legs and arms</span><span class="b">90m · warmup 8m</span></div><p class="hl">Heavy legs with room to breathe — the big session of the week</p><p class="wu"><b>Warmup:</b> Bodyweight squats and hip hinges, then two ramp sets on the leg press at roughly 135 and 205 lb.</p><div class="ex"><div class="ex-row"><span class="n">Leg Press<em>4 × 10-12</em></span><span class="w ">275</span></div><div class="ex-row"><span class="n">Romanian Deadlift (DB)<em>4 × 8-10</em></span><span class="w ">95</span></div><div class="ex-row"><span class="n">Leg Extension<em>3 × 10-12</em></span><span class="w ">117.5</span></div><div class="ex-row"><span class="n">Leg Curl<em>3 × 10-12</em></span><span class="w ">72.5</span></div><div class="ex-row"><span class="n">Calf Raise (Seated)<em>3 × 12-15</em></span><span class="w ">52.5</span></div><div class="ex-row"><span class="n">Preacher Curl (Machine)<em>3 × 8-10</em></span><span class="w ">50</span></div><div class="ex-row"><span class="n">Tricep Pushdown (Flat Bar)<em>3 × 6-8</em></span><span class="w ">52.5</span></div></div></div>
+      </div>
+
+      <div class="col">
+        <div class="scen b">
+          <span class="tag">Scenario B · fractured ankle</span>
+          <p class="said">"Fractured my ankle on 09/24, in a boot, no gym clearance from the ortho. Starting PT Monday. Can do workouts that don't put weight on my left ankle."</p>
+        </div>
+        <div class="warns"><div class="wn">! Upper Back and Shoulders on Sat has 7 exercises in 60 min. Around 6 is the ceiling.</div></div>
+        <div class="wknote">You fractured an ankle and the ortho has not cleared you for the gym yet, so this week is built entirely around that. I have assumed that seated, supported upper-body work with the boot on and zero weight through the left foot is within what you have been told you can do — confirm that at PT on Monday and with the ortho, and if either says no gym at all, this week does not happen. What I have removed: every loaded leg movement (Leg Press, Hack Squat, Romanian Deadlift, Hack Squat, Leg Extension, Leg Curl, Seated Calf Raise), barbell bench and incline (you need a planted, stable base to unrack safely), Pull-Ups (the jump up and the drop down are the problem, not the pulling), and any floor or kneeling core like Plank, Ab Wheel or Cable Crunch. What stays: machine and cable pressing, all seated back work, shoulders and arms, and a seated Pallof Press. The earned jumps on Leg Press, RDL, Leg Extension, Leg Curl and Calf Raise are banked, not lost — they will be waiting when PT clears loaded leg work, and the earned 140 on flat bench waits until you can brace against the floor properly. You have not trained in 19 days, so volume is deliberately modest and Saturday uses about 60 of your 90 minutes; the point this week is to get four sessions in, not to chase a record. Lateral Raise appears Monday and Saturday, seated both times.</div>
+        <div class="day"><div class="day-hd"><span class="d">MON · Seated Push</span><span class="b">30m · warmup 8m</span></div><p class="hl">Back in the gym: machine pressing, nothing through the foot</p><p class="wu"><b>Warmup:</b> Seated band pull-aparts, then two sets of 15 on the chest press machine at roughly half your working weight — get the press pattern moving before you load it.</p><div class="ex"><div class="ex-row"><span class="n">Chest Press (Hammer)<em>3 × 10</em></span><span class="w ">45</span></div><div class="ex-row"><span class="n">Incline Press (Hammer)<em>3 × 8-10</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Lateral Raise<em>3 × 10</em></span><span class="w ">22.5</span></div><div class="ex-row"><span class="n">Tricep Pushdown (Flat Bar)<em>3 × 8</em></span><span class="w ">52.5</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">TUE · Seated Pull</span><span class="b">30m · warmup 5m</span></div><p class="hl">All seated back work</p><p class="wu"><b>Warmup:</b> Two sets of 12 on the cable row at about half your working weight, plus band pull-aparts — wake up the mid-back before you row heavy.</p><div class="ex"><div class="ex-row"><span class="n">Cable Row<em>3 × 10</em></span><span class="w ">102.5</span></div><div class="ex-row"><span class="n">Wide Grip Lat Pulldown<em>3 × 12</em></span><span class="w ">120</span></div><div class="ex-row"><span class="n">Rear Delt Fly (Machine)<em>3 × 12</em></span><span class="w ">45</span></div><div class="ex-row"><span class="n">Preacher Curl (Machine)<em>3 × 10</em></span><span class="w ">50</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">THU · Shoulders and Arms</span><span class="b">30m · warmup 5m</span></div><p class="hl">Overhead press first, while you are fresh</p><p class="wu"><b>Warmup:</b> Light seated dumbbell presses with 15s for two sets of 12, then band pull-aparts — the overhead pattern first since that is what you open with.</p><div class="ex"><div class="ex-row"><span class="n">DB Shoulder Press<em>3 × 7</em></span><span class="w ">47.5</span></div><div class="ex-row"><span class="n">Cable Lateral Raise<em>3 × 12</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Face Pull<em>3 × 12</em></span><span class="w ">35</span></div><div class="ex-row"><span class="n">Tricep Extension (Machine)<em>3 × 12</em></span><span class="w ">80</span></div></div></div>
+<div class="day"><div class="day-hd"><span class="d">SAT · Upper Back and Shoulders</span><span class="b">60m · warmup 5m</span></div><p class="hl">The width session: pulldown and row first, laterals second</p><p class="wu"><b>Warmup:</b> Two sets of 12 on the pulldown at about half your working weight plus band pull-aparts — groove the overhead pull before loading it.</p><div class="ex"><div class="ex-row"><span class="n">Mag Grip Pulldown<em>4 × 8-10</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Cable Row<em>4 × 10</em></span><span class="w ">102.5</span></div><div class="ex-row"><span class="n">Lateral Raise<em>4 × 10</em></span><span class="w ">22.5</span></div><div class="ex-row"><span class="n">Straight Arm Pulldown<em>3 × 12</em></span><span class="w find">find it</span></div><div class="ex-row"><span class="n">Rear Delt Fly<em>3 × 12</em></span><span class="w ">17.5</span></div><div class="ex-row"><span class="n">Incline DB Curl<em>3 × 8</em></span><span class="w ">22.5</span></div><div class="ex-row"><span class="n">Pallof Press<em>3 × 10 each side</em></span><span class="w find">find it</span></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">What the rules changed</p>
+      <h2>Five fixes, and what each did</h2>
+    </div>
+    <div class="finds">
+      <div class="find good">
+        <span class="lbl">Anchor lifts</span>
+        <p>
+          <b>Lateral Raise now appears twice in both weeks.</b> It has 28 logged sets — your
+          most-trained lift by half again — and is the highest-leverage movement for a
+          v-taper. Round one gave it one slot. <code>preference = 'anchor'</code> makes a
+          single appearance a validation failure, not a judgement call.
+        </p>
+      </div>
+      <div class="find good">
+        <span class="lbl">Pull-ups moved to the front</span>
+        <p>
+          Scenario A opens Tuesday with <b>Pull-Up</b>, not the pulldown. This is where I
+          disagreed with you: a pull-up is the most demanding pull in the library, and you
+          have zero logged sets, so calibrating it while fatigued would give you a bad
+          baseline to progress from.
+        </p>
+      </div>
+      <div class="find good">
+        <span class="lbl">Warmup is inside the budget</span>
+        <p>
+          Every session now reserves time and says what to do — <i>"empty bar bench ×10 and
+          two ramp sets at 95 and 120"</i>, not "warm up". 8 minutes when the session opens
+          with a heavy barbell lift, 5 otherwise. Your 30 minutes is now actually 30.
+        </p>
+      </div>
+      <div class="find good">
+        <span class="lbl">Core work exists, and it reasoned about it</span>
+        <p>
+          Five core movements added — the library had none. Scenario A finishes Thursday
+          with a Plank. Scenario B <b>removed every floor and kneeling core movement</b>
+          (Plank, Ab Wheel, Cable Crunch) because of the boot, and kept the seated Pallof
+          Press. It understood that "core work" isn't one thing.
+        </p>
+      </div>
+      <div class="find good">
+        <span class="lbl">Medical deferral, now by design</span>
+        <blockquote>
+          "I have assumed that seated, supported upper-body work with the boot on and zero
+          weight through the left foot is within what you have been told you can do —
+          confirm that at PT on Monday and with the ortho, and if either says no gym at
+          all, this week does not happen."
+        </blockquote>
+        <p>
+          It states its assumption, names who should confirm it, and says what invalidates
+          the whole week. Round one deferred correctly by luck; the prompt now requires it.
+          It also pulled Pull-Ups for a reason I wouldn't have thought of —
+          <i>"the jump up and the drop down are the problem, not the pulling."</i>
+        </p>
+      </div>
+      <div class="find watch">
+        <span class="lbl">Two warnings, both fair</span>
+        <p>
+          <b>A:</b> three compounds on Tuesday — Pull-Up, Cable Row and Lat Pulldown. Two
+          of those are vertical pulls, so it is genuinely redundant.
+          <b>B:</b> it cut Saturday from 90 to 60 minutes itself because of your layoff,
+          then kept 7 exercises, which is one over the ceiling for 60.
+          Neither ruins a week. Both are now <i>visible</i> instead of silently shipped.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Still your call</p>
+      <h2>Two things to settle</h2>
+    </div>
+    <div class="ask">
+      <span class="lbl">Where I may have the rule wrong</span>
+      <ol>
+        <li>
+          <b>Is "max two compounds" too strict for pull days?</b> A classic pull day is
+          pulldown + row + something, and all three are compounds. Your own rule said 1–2,
+          but the warning on Tuesday A may be my rule being wrong rather than the plan.
+        </li>
+        <li>
+          <b>Should Saturday's budget just be 60?</b> You set 90, and the model has now
+          twice chosen to use about 60. Your longest real session is 88 minutes; the median
+          is 31. Setting 60 would stop both of us pretending.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+</div>

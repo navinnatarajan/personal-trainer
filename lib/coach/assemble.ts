@@ -82,7 +82,7 @@ export async function assembleCoachContext(
       db
         .from("exercises")
         .select(
-          "id, name, muscle_group, unit, increment_lbs, preference, equipment, exercise_targets(baseline_weight, next_target)",
+          "id, name, muscle_group, unit, increment_lbs, preference, movement_type, equipment, exercise_targets(baseline_weight, next_target)",
         )
         .eq("user_id", userId),
 
@@ -138,6 +138,7 @@ export async function assembleCoachContext(
     unit: string;
     increment_lbs: number | string;
     preference: string;
+    movement_type: string;
     equipment: string | null;
     exercise_targets: Array<{ baseline_weight: number | null; next_target: number | null }>;
   };
@@ -160,6 +161,7 @@ export async function assembleCoachContext(
 
   const nameById = new Map(exRows.map((r) => [r.id, r.name]));
   const excluded = exRows.filter((r) => r.preference === "excluded").map((r) => r.name);
+  const anchors = exRows.filter((r) => r.preference === "anchor").map((r) => r.name);
   const favourites = exRows.filter((r) => r.preference === "favourite").map((r) => r.name);
 
   // --- sessions and sets ----------------------------------------------------
@@ -309,6 +311,7 @@ export async function assembleCoachContext(
       unit: r.unit,
       incrementLbs: Number(r.increment_lbs),
       preference: r.preference,
+      movementType: r.movement_type as "compound" | "accessory" | "core",
       hasHistory: withHistory.has(r.id),
     }));
 
@@ -327,6 +330,7 @@ export async function assembleCoachContext(
       stylePreference:
         (profile.style_preference ?? null) as CoachContext["preferences"]["stylePreference"],
       excluded,
+      anchors,
       favourites,
       durableConstraints: profile.durable_constraints ?? null,
     },

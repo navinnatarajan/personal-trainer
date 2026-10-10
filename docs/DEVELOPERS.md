@@ -46,6 +46,7 @@ npm run dev                     # http://localhost:3000
 | `npm run test:integration` | Hits the live Supabase project and prints the assembled coach context |
 | `./scripts/verify-schema.sh` | Applies migrations to a throwaway local Postgres and asserts behaviour |
 | `node scripts/import-xlsx.mjs` | Dry-run import of the training spreadsheet |
+| `node scripts/classify-exercises.mjs` | Classifies movement types, sets anchors, seeds core |
 
 ---
 
@@ -109,11 +110,12 @@ docs/                   this guide, PRODUCT, ARCHITECTURE, DECISIONS, PLAN, desi
 ```
 profiles           identity, goals (ordered enum[]), training level, check-in day,
                    durable constraints
-exercises          per-user library; `preference` is favourite/neutral/excluded
+exercises          per-user library; `movement_type` drives session order,
+                   `preference` includes anchor (must appear 2x/week) and excluded
 exercise_targets   baseline and next target per exercise
 day_preferences    per-day can_train + duration; `usual_time` only for calendar sync
 week_plans         generated weeks; `raw_plan` keeps the exact model output
-planned_sessions   a day within a week plan
+planned_sessions   a day within a week plan; warmup_min is inside time_budget_min
 planned_exercises  a prescription within a session
 sessions           an actual training session — see the status model below
 set_logs           the spine: every set ever logged

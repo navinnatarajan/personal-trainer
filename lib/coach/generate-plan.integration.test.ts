@@ -8,7 +8,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { assembleCoachContext } from "./assemble";
@@ -47,7 +47,9 @@ describe("generateWeekPlan against real history", () => {
       context: ctx,
       weekStart: WEEK_START,
       weekNumber: WEEK_NUMBER,
+      // Override with PLAN_NOTES to try a scenario without editing this file.
       thisWeekNotes:
+        e.PLAN_NOTES ??
         "Left shoulder is a bit cranky on overhead pressing. Volleyball Thursday evening.",
       client,
     });
@@ -118,6 +120,11 @@ describe("generateWeekPlan against real history", () => {
       }
     }
     out.push("═".repeat(72));
+    const outPath = e.PLAN_OUT;
+    if (outPath) {
+      writeFileSync(outPath, JSON.stringify({ result, notes: e.PLAN_NOTES ?? null }, null, 2));
+      console.log(`\nwrote ${outPath}`);
+    }
     console.log(out.join("\n"));
     expect(result.plan.week_note.length).toBeGreaterThan(20);
   });

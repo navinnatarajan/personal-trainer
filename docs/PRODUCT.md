@@ -201,6 +201,12 @@ can actually measure it.
 per user*; set logging runs thousands of times. If voice is built, it belongs at the rack
 — *"one twenty, twelve"* with chalky hands mid-rest — not in a flow executed four times.
 
+**Core work as a route to the v-taper.** Core movements exist in the library and appear as
+finishers, but they are not sold as shaping the waist. The V is shoulder width divided by
+waist width: shoulders are trainable, and the waist comes from fat loss. Core training
+builds muscle under the fat without shrinking the circumference, and heavy oblique work can
+marginally thicken it. The prompt says this explicitly so the plan never implies otherwise.
+
 **Average session duration.** Absent from the dashboard until there is data. All 11
 imported sessions have null duration because they were never timed, and we chose not to
 invent them. The tile earns its place after a week on the real timer.
@@ -263,6 +269,18 @@ because two layers are computed rather than asked.
 6. **Anything off limits** — won't-do list and durable constraints. Skippable
 
 Then a seventh screen that isn't a question: **"Week one finds your weights."**
+
+### Session shape
+
+Every session follows the same shape, enforced by the validator rather than hoped for:
+**one or two compounds first**, then one to three accessories, then optionally one core
+movement as a finisher. Warmup time is reserved *inside* the budget, never added to it —
+previously a 30-minute plan meant 40 minutes in practice.
+
+Anchor lifts are a stronger thing than a favourite: a lift the user treats as
+non-negotiable, which must appear at least twice a week. Usually it is whatever is most
+tied to their stated goal, and a single appearance quietly works against what they are
+training for.
 
 ### Why week one is calibration
 

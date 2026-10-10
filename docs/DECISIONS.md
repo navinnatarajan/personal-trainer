@@ -125,6 +125,51 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Session structure is enforced, not prompted
+**2026-10-10** — The first generated plans were well-reasoned but structurally wrong in
+ways prose instructions would not reliably fix. Lateral Raise — 28 logged sets, the
+most-trained lift in the library by half again, and the highest-leverage movement for a
+v-taper — appeared **once** across four sessions. Saturday had nine exercises. Pull-ups
+sat fourth. No warmup time was reserved, so every 30-minute session was really 40. And
+there was no core work at all, because the library had six muscle groups and none of them
+was core.
+
+Rather than ask the model more firmly, the rules became data the validator asserts:
+
+- `exercises.movement_type` (compound / accessory / core) — sessions must open with one or
+  two compounds and finish with core. A session done in the wrong order is a worse session:
+  the hardest movement done last is the one that teaches you least.
+- `exercises.preference = 'anchor'` — must appear at least twice a week. `favourite`
+  existed but nothing was set to it and the prompt treated it as a weak tiebreaker.
+- `planned_sessions.warmup_min` / `warmup_note`, counted **inside** `time_budget_min`
+  rather than added to it.
+- Exercise-count ceilings by budget: 4 for 30 minutes, 6 for 60.
+- Five core movements seeded into the library.
+
+**Pull-ups are classified compound, against the user's own suggestion** that they were an
+accessory. A pull-up is the most demanding pull available, and with zero logged sets,
+calibrating it while fatigued produces a bad baseline that every later week progresses
+from. Round two opens Tuesday with it.
+
+Also added explicit medical guidance to the system prompt — never diagnose, never estimate
+recovery time, defer to any named clinician, state assumptions about partial clearance.
+The fractured-ankle scenario had handled this well *by default*, which is not the same as
+by design.
+
+### The fallback plan was itself a bad week
+**2026-10-10** — Tightening the validator immediately failed the deterministic fallback,
+which built sessions by grouping the library by muscle group. With seven groups across
+four days that produced a **"Biceps day"** and a **"Core day"** — the latter containing no
+compound at all, and core work first rather than last.
+
+Rewritten around movement patterns (push / pull / legs), filtered to patterns that
+actually have a compound available, with anchors placed before accessories so they cannot
+be crowded out. It now passes every rule the validator enforces, anchors included.
+
+Worth keeping: the fallback is the safety net for a failed generation on a check-in
+evening, so it cannot itself be the thing that produces a nonsense week. Asserting it
+against the same rules as a real plan is what caught this.
+
 ### A substring regex classified every machine exercise as bodyweight
 **2026-10-10** — The importer decided bodyweight with
 `/pull-up|dip|chin/i.test(name)`. **`/chin/` matches "ma-CHIN-e."** So Rear Delt Fly

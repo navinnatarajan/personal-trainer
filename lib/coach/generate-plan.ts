@@ -44,7 +44,11 @@ const PlannedSessionSchema = z.object({
   dow: z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
   date: z.string(),
   session_name: z.string(),
+  /** Inclusive of warmup. Previously the warmup happened on top, so 30 became 40. */
   time_budget_min: z.number().int().min(5).max(300),
+  warmup_min: z.number().int().min(0).max(30),
+  /** One line, specific to the first lift's movement pattern — not generic cardio. */
+  warmup_note: z.string(),
   headline: z.string(),
   exercises: z.array(PlannedExerciseSchema).min(1),
 });
@@ -211,14 +215,84 @@ export function validatePlan(plan: WeekPlan, ctx: CoachContext): string[] {
       }
     }
 
-    // Honest time estimate: sets x (rest + ~40s of work), plus warmup.
+    // --- session structure ---
+    //
+    // Enforced rather than hoped for. A session done in the wrong order is a worse
+    // session: the hardest movement done last is the one that teaches you least.
+    const types = session.exercises.map(
+      (e) => allowed.get(e.name)?.movementType ?? "accessory",
+    );
+    const compoundCount = types.filter((x) => x === "compound").length;
+
+    if (compoundCount === 0) {
+      warnings.push(`${session.session_name} on ${session.dow} has no compound lift.`);
+    }
+    if (compoundCount > 2) {
+      warnings.push(
+        `${session.session_name} on ${session.dow} has ${compoundCount} compounds.` +
+          ` Two is the maximum — a third means none of them gets done properly.`,
+      );
+    }
+
+    // Compounds must come before accessories, and core is a finisher.
+    const firstAccessory = types.indexOf("accessory");
+    const lastCompound = types.lastIndexOf("compound");
+    if (firstAccessory !== -1 && lastCompound > firstAccessory) {
+      warnings.push(
+        `${session.session_name} on ${session.dow} puts a compound after an accessory.` +
+          ` Compounds go first, while fresh.`,
+      );
+    }
+    const firstCore = types.indexOf("core");
+    if (firstCore !== -1 && firstCore !== types.length - 1) {
+      warnings.push(
+        `${session.session_name} on ${session.dow} has core work before the end.` +
+          ` Core is a finisher.`,
+      );
+    }
+
+    // Exercise count against the budget. Beyond this a plan stops getting followed.
+    const maxExercises = session.time_budget_min <= 35 ? 4 : session.time_budget_min <= 65 ? 6 : 7;
+    if (session.exercises.length > maxExercises) {
+      warnings.push(
+        `${session.session_name} on ${session.dow} has ${session.exercises.length} exercises` +
+          ` in ${session.time_budget_min} min. Around ${maxExercises} is the ceiling.`,
+      );
+    }
+
+    // --- warmup and time ---
+    if (session.warmup_min === 0) {
+      warnings.push(`${session.session_name} on ${session.dow} reserves no warmup time.`);
+    }
+    // The budget is inclusive, so the warmup is counted here rather than added.
     const estimated = Math.round(
-      session.exercises.reduce((a, e) => a + e.sets * (e.rest_sec + 40), 0) / 60 + 5,
+      session.exercises.reduce((a, e) => a + e.sets * (e.rest_sec + 40), 0) / 60 +
+        session.warmup_min,
     );
     if (estimated > session.time_budget_min * 1.2) {
       warnings.push(
         `${session.session_name} on ${session.dow} needs about ${estimated} min against a ` +
-          `${session.time_budget_min} min budget.`,
+          `${session.time_budget_min} min budget (including ${session.warmup_min} min warmup).`,
+      );
+    }
+  }
+
+  // --- anchors ---
+  //
+  // Non-negotiable lifts, so a single appearance across a week is a failure rather than a
+  // judgement call. Lateral Raise is the case: most-trained lift in the library, the
+  // highest-leverage movement for a v-taper, and the first generated plan gave it one slot.
+  const appearances = new Map<string, number>();
+  for (const s of plan.sessions) {
+    for (const ex of s.exercises) {
+      appearances.set(ex.name, (appearances.get(ex.name) ?? 0) + 1);
+    }
+  }
+  for (const anchor of ctx.preferences.anchors) {
+    const n = appearances.get(anchor) ?? 0;
+    if (n < 2) {
+      warnings.push(
+        `${anchor} is an anchor lift and appears ${n} time(s). It needs at least twice.`,
       );
     }
   }
@@ -254,40 +328,102 @@ export function buildFallbackPlan(
 ): WeekPlan {
   const days = ctx.stated.days.length
     ? ctx.stated.days
-    : [{ dow: 1, durationMin: 30 }, { dow: 4, durationMin: 30 }];
+    : [
+        { dow: 1, durationMin: 30 },
+        { dow: 4, durationMin: 30 },
+      ];
 
-  // Rotate muscle groups across the available days so nothing is trained twice running.
-  const groups = [...new Set(ctx.programmable.map((e) => e.muscleGroup))].sort();
-  const byGroup = new Map<string, typeof ctx.programmable>();
-  for (const e of ctx.programmable) {
-    const list = byGroup.get(e.muscleGroup) ?? [];
-    list.push(e);
-    byGroup.set(e.muscleGroup, list);
-  }
   const progByName = new Map(
     ctx.progression.map((p) => [ctx.exerciseNames[p.exerciseId] ?? p.exerciseId, p]),
   );
 
+  // Sessions are built around movement patterns, not muscle groups. Grouping by muscle
+  // produced a "Biceps day" and a "Core day" — neither of which is a session, and the
+  // latter has no compound at all.
+  const pattern = (muscleGroup: string): "push" | "pull" | "legs" | "other" => {
+    if (muscleGroup === "Back") return "pull";
+    if (muscleGroup === "Chest" || muscleGroup === "Shoulders") return "push";
+    if (muscleGroup === "Legs") return "legs";
+    return "other";
+  };
+
+  const compoundsBy = (p: "push" | "pull" | "legs") =>
+    ctx.programmable.filter(
+      (e) => e.movementType === "compound" && pattern(e.muscleGroup) === p,
+    );
+
+  // Accessories that belong with each pattern. Arms ride along with the press/pull day
+  // that trains them, which is how anyone actually splits a week.
+  const accessoriesBy = (p: "push" | "pull" | "legs") =>
+    ctx.programmable.filter((e) => {
+      if (e.movementType !== "accessory") return false;
+      const g = e.muscleGroup;
+      if (p === "push") return g === "Chest" || g === "Shoulders" || g === "Triceps";
+      if (p === "pull") return g === "Back" || g === "Biceps" || g === "Shoulders";
+      return g === "Legs";
+    });
+
+  const coreWork = ctx.programmable.filter((e) => e.movementType === "core");
+  const anchors = new Set(ctx.preferences.anchors);
+  const anchorPool = ctx.programmable.filter((e) => anchors.has(e.name));
+
+  // Only patterns that actually have a compound available can become a session.
+  const rotation = (["push", "pull", "legs"] as const).filter(
+    (p) => compoundsBy(p).length > 0,
+  );
+
+  const anchorUses = new Map<string, number>();
+
   const sessions = days.map((day, i) => {
     const budget = day.durationMin ?? 30;
-    const group = groups[i % Math.max(1, groups.length)] ?? "Full body";
-    const pool = (byGroup.get(group) ?? ctx.programmable).slice(0, Math.max(2, Math.floor(budget / 8)));
+    const pat = rotation.length ? rotation[i % rotation.length] : "push";
+    const maxExercises = budget <= 35 ? 4 : 6;
+
+    const chosen: typeof ctx.programmable = [];
+    chosen.push(...compoundsBy(pat).slice(0, budget <= 35 ? 1 : 2));
+
+    // Anchors come next so they are never crowded out by whatever happened to sort first.
+    for (const a of anchorPool) {
+      if (chosen.length >= maxExercises - 1) break;
+      if ((anchorUses.get(a.name) ?? 0) >= 2) continue;
+      if (chosen.some((c) => c.name === a.name)) continue;
+      chosen.push(a);
+      anchorUses.set(a.name, (anchorUses.get(a.name) ?? 0) + 1);
+    }
+
+    for (const acc of accessoriesBy(pat)) {
+      if (chosen.length >= maxExercises - (coreWork.length ? 1 : 0)) break;
+      if (chosen.some((c) => c.name === acc.name)) continue;
+      chosen.push(acc);
+    }
+
+    // Core last, and only ever as a finisher.
+    if (coreWork.length && chosen.length < maxExercises) {
+      chosen.push(coreWork[i % coreWork.length]);
+    }
+
+    const rank = { compound: 0, accessory: 1, core: 2 } as const;
+    chosen.sort((a, b) => rank[a.movementType] - rank[b.movementType]);
 
     return {
       dow: DOW_NAME[day.dow] ?? "Mon",
       date: addDays(weekStart, day.dow - 1),
-      session_name: group,
+      session_name: pat === "push" ? "Push" : pat === "pull" ? "Pull" : "Legs",
       time_budget_min: budget,
-      headline: "Built without the coach — weights are correct, the programming is basic.",
-      exercises: pool.map((e) => {
+      warmup_min: 5,
+      warmup_note:
+        "Five minutes: light sets of the first movement, building up to the working weight.",
+      headline: "Built without the coach — the weights are right, the programming is basic.",
+      exercises: chosen.map((e) => {
         const p = progByName.get(e.name);
         const establishing = !p || p.action === "establish_baseline";
+        const bodyweight = e.unit === "BW";
         return {
           name: e.name,
           sets: 3,
-          target_weight: establishing ? null : p.nextWeight,
+          target_weight: establishing || bodyweight ? null : p.nextWeight,
           target_reps: establishing ? "8" : p.nextTargetReps,
-          rest_sec: 75,
+          rest_sec: e.movementType === "compound" ? 120 : 60,
           superset_group: null,
           tag: null,
           coaching_note: establishing
