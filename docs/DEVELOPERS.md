@@ -64,6 +64,11 @@ npm run dev                     # http://localhost:3000
 > The scaffold's own `AGENTS.md` tells you to read `node_modules/next/dist/docs/` before
 > writing code; those docs are bundled locally and are the authority over anything recalled.
 
+If `tsc` reports `Duplicate identifier 'LayoutProps'` or conflicting definitions in
+`.next/types/*.d 2.ts`, the cause is `next dev` and `next build` having written to the same
+directory. It is generated output: `rm -rf .next && npx next typegen` fixes it, and nothing
+tracked is lost.
+
 Also note: `cookies()` is async (`await cookies()`), and `params` / `searchParams` are
 Promises. Route types are generated — run `npx next typegen` after adding a route or
 `PageProps<"/your-route">` will not typecheck.
