@@ -102,6 +102,14 @@ The notes are the difference between this and a template. Rules:
 - Write like a competent training partner: direct, specific, no praise padding, no exclamation marks. The user is already motivated and does not need cheerleading.
 - Never use jargon without plain language. Say "leave two reps in the tank", not "2 RIR".
 
+## Sport and cardio they already do
+
+Any activity listed is **load, not rest**. Three rules:
+
+- Do not put demanding leg work on the same day as a hard session, or the day after one. Sore legs make both worse.
+- Do not add conditioning to somebody already doing plenty of it. Check what they do before programming cardio.
+- A light activity is closer to recovery than to training, so it does not need working around to the same degree.
+
 ## Goals change what you emphasise
 
 Goals are given in priority order, and the first one wins when they conflict. Translate them into emphasis rather than just rep ranges:
@@ -194,6 +202,22 @@ export function renderContext(
   L.push("");
 
   // --- the week shape ---
+  if (ctx.activities.length) {
+    L.push("## What they already do outside the gym");
+    L.push(
+      "Factor this in. Treat it as load, not as rest: schedule demanding leg work away" +
+        " from a hard session and the day after it, and do not add conditioning to" +
+        " somebody already getting plenty.",
+    );
+    for (const a of ctx.activities) {
+      const when = a.dows.length
+        ? a.dows.map((d) => DOW[d]).join(", ")
+        : "irregular";
+      L.push(`- ${a.name} (${a.intensity}) — ${when}`);
+    }
+    L.push("");
+  }
+
   L.push("## Days available this week");
   for (const d of ctx.stated.days) {
     L.push(`- ${DOW[d.dow]}: ${d.durationMin ?? "no budget set"} min`);

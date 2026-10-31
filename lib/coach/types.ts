@@ -75,6 +75,21 @@ export interface GoalFacts {
   splitPreference: "push_pull_legs" | "upper_lower" | "full_body" | "coach_decides";
 }
 
+/**
+ * Sport and cardio outside the gym.
+ *
+ * Load the coach would otherwise be blind to. A hard Tuesday game means Tuesday legs
+ * competes with it and Wednesday legs lands on sore ones; somebody already running three
+ * times a week does not need conditioning added on top. Without this, every non-gym day
+ * looks like full recovery.
+ */
+export interface ActivityFact {
+  name: string;
+  /** ISO weekdays. Empty means irregular — still worth knowing it happens. */
+  dows: number[];
+  intensity: "light" | "moderate" | "hard";
+}
+
 /** What the user says they can do. Compare against ObservedBehaviour, which is the truth. */
 export interface StatedAvailability {
   days: Array<{ dow: number; durationMin: number | null }>;
@@ -178,6 +193,7 @@ export interface CoachContext {
   preferences: PreferenceFacts;
   goals: GoalFacts;
   stated: StatedAvailability;
+  activities: ActivityFact[];
   measured: MeasuredState;
   observed: ObservedBehaviour;
   episodic: EpisodicMemory;

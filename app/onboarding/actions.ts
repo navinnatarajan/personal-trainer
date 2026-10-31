@@ -62,6 +62,7 @@ export async function saveOnboarding(input: OnboardingInput): Promise<SaveResult
       split_preference: data.splitPreference,
       checkin_dow: data.checkinDow,
       durable_constraints: data.durableConstraints,
+      onboarded_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -114,6 +115,29 @@ export async function saveOnboarding(input: OnboardingInput): Promise<SaveResult
       .eq("user_id", user.id)
       .in("name", data.excluded);
     if (excludeError) return { ok: false, errors: [excludeError.message] };
+  }
+
+  // --- activities ---
+  //
+  // Replace wholesale rather than merge: removing one in a later run has to actually
+  // remove it, and these rows carry no history worth preserving (unlike exercises, where
+  // deletion would take logged sets with it).
+  const { error: delActivities } = await supabase
+    .from("user_activities")
+    .delete()
+    .eq("user_id", user.id);
+  if (delActivities) return { ok: false, errors: [delActivities.message] };
+
+  if (data.activities.length) {
+    const { error: actError } = await supabase.from("user_activities").insert(
+      data.activities.map((a) => ({
+        user_id: user.id,
+        name: a.name.trim(),
+        dows: a.dows,
+        intensity: a.intensity,
+      })),
+    );
+    if (actError) return { ok: false, errors: [actError.message] };
   }
 
   return { ok: true, errors: [] };

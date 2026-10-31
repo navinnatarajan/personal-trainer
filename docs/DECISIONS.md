@@ -125,6 +125,50 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Activities outside the gym are load, not rest
+**2026-10-31** — Onboarding asked nothing about sport or cardio, so the coach treated every
+non-gym day as full recovery. That is wrong for anyone with a sport: a hard Tuesday game
+means Tuesday legs competes with it and Wednesday legs lands on sore ones, and somebody
+already running three times a week does not need conditioning added on top.
+
+`user_activities` is a table rather than free text because the coach reasons per weekday,
+which means it has to be queryable. Each row carries the activity, the weekdays it usually
+falls on (empty meaning irregular, which is still useful), and an intensity.
+
+The effect was immediate and unprompted. With basketball Tuesday and volleyball Thursday
+both marked hard, the generated week moved **every** leg movement to Saturday: *"basketball
+Tuesday and volleyball Thursday are hard leg days, so loading quads Monday or Friday would
+wreck one or the other."* Nothing in the prompt mentions quads.
+
+### Onboarding needed a completion gate
+**2026-10-31** — Signing in landed on the placeholder home rather than setup, because
+nothing distinguished a new user from a returning one. The signup trigger creates the
+profile row at signup, so its existence proves nothing.
+
+`profiles.onboarded_at` is the signal, and `/` redirects when it is null. A timestamp
+rather than a boolean, so it also records when — useful when a profile looks stale. The
+decision lives only in `/`, deliberately: the auth callback does not duplicate the check,
+since two places that can drift is worse than one redirect hop.
+
+### UI corrections from using the flow
+**2026-10-31** — Four things surfaced only by walking through it on a phone.
+
+**Height is a feet/inches pair of native selects**, not an inches field. A native select
+renders as a scroll wheel on iOS, which suits a small fixed range, and it removes the "is
+75 inches or centimetres?" ambiguity a bare number invites. Stored as total inches, which
+is what the database and waist-to-height want.
+
+**Goal reordering moves the items.** The first version renumbered them in place, which
+reads as a bug rather than a reorder. Selected goals now sit in their own ordered list that
+visibly re-sorts, with a "Top" action — a genuine drag-and-drop is fiddly on mobile and
+needs a library for little gain over one tap.
+
+**Exclusions search the whole library**, plus free text for anything not in it. A
+seven-item shortlist is a starting point, not a complete answer to what somebody will not
+do.
+
+**Birth year is a select too**, newest first, since most users are nearer the recent end.
+
 ### A test that passed by accident, and two credentials that expired
 **2026-10-31** — Picking the project back up after three weeks surfaced three things.
 

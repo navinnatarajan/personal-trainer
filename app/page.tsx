@@ -13,14 +13,16 @@ export default async function HomePage() {
   const user = await getUser();
   if (!user) redirect("/login");
 
-  // Confirms the on_auth_user_created trigger populated profiles, and that RLS lets the
-  // owner read their own row.
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("display_name, timezone, lifecycle_stage, created_at")
+    .select("display_name, timezone, lifecycle_stage, created_at, onboarded_at")
     .eq("id", user.id)
     .maybeSingle();
+
+  // A user who has not finished setup has nothing to see here. The trigger creates the
+  // profile row at signup, so its existence proves nothing — onboarded_at is the signal.
+  if (profile && !profile.onboarded_at) redirect("/onboarding");
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-6 py-14">
@@ -43,6 +45,10 @@ export default async function HomePage() {
                 ? "created by trigger"
                 : "missing"
           }
+        />
+        <Row
+          label="Onboarded"
+          value={profile?.onboarded_at ? profile.onboarded_at.slice(0, 10) : "not yet"}
         />
         <Row label="Timezone" value={profile?.timezone ?? "—"} />
         <Row label="Stage" value={profile?.lifecycle_stage ?? "—"} />

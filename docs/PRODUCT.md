@@ -261,7 +261,7 @@ missed and that they stop counting toward progression, instead of *"are you sure
 
 ## Onboarding
 
-Six steps, five of them under twenty seconds. It asks for **less** than the model consumes,
+Seven steps, most of them under twenty seconds. It asks for **less** than the model consumes,
 because two layers are computed rather than asked.
 
 1. **About you** — sex, height, birth year
@@ -272,7 +272,11 @@ because two layers are computed rather than asked.
 4. **Goals** — up to three, **ranked**, with the conflict named on screen, plus the
    **split preference**: push/pull/legs, upper/lower, full-body, or let the coach decide
 5. **Your week** — days, per-day duration, and the check-in day
-6. **Anything off limits** — won't-do list and durable constraints. Skippable
+6. **Anything else you do** — sport and cardio outside the gym, with the days and how
+   hard. This is load, not rest: it moves demanding leg work away from a hard game and the
+   day after, and stops conditioning being added to somebody already getting plenty
+7. **Anything off limits** — won't-do list (searchable across the whole library, plus free
+   text) and durable constraints. Skippable
 
 Then a seventh screen that isn't a question: **"Week one finds your weights."**
 

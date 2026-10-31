@@ -16,12 +16,18 @@ export default async function OnboardingPage() {
 
   const supabase = await createClient();
 
-  const [{ data: profile }, { data: dayPrefs }, { data: metrics }, { data: excluded }] =
-    await Promise.all([
+  const [
+    { data: profile },
+    { data: dayPrefs },
+    { data: metrics },
+    { data: excluded },
+    { data: activities },
+    { data: library },
+  ] = await Promise.all([
       supabase
         .from("profiles")
         .select(
-          "display_name, sex, height_in, birth_year, weight_lbs, training_level, gym_type, equipment, style_preference, goals, split_preference, checkin_dow, durable_constraints",
+          "display_name, sex, height_in, birth_year, weight_lbs, training_level, gym_type, equipment, style_preference, goals, split_preference, checkin_dow, durable_constraints, onboarded_at",
         )
         .eq("id", user.id)
         .maybeSingle(),
@@ -36,6 +42,9 @@ export default async function OnboardingPage() {
         .order("date", { ascending: false })
         .limit(1),
       supabase.from("exercises").select("name").eq("user_id", user.id).eq("preference", "excluded"),
+      supabase.from("user_activities").select("name, dows, intensity").eq("user_id", user.id),
+      // The whole library, so any lift can be excluded — not only the shortlist.
+      supabase.from("exercises").select("name, muscle_group").eq("user_id", user.id).order("name"),
     ]);
 
   const prefByDow = new Map((dayPrefs ?? []).map((d) => [d.dow, d]));
@@ -63,18 +72,25 @@ export default async function OnboardingPage() {
       };
     }),
     checkinDow: profile?.checkin_dow ?? 7,
+    activities: (activities ?? []).map((a) => ({
+      name: a.name,
+      dows: (a.dows ?? []) as number[],
+      intensity: a.intensity as OnboardingInput["activities"][number]["intensity"],
+    })),
     excluded: (excluded ?? []).map((e) => e.name),
     durableConstraints: profile?.durable_constraints ?? null,
   };
 
-  // Having any training day set means this is a returning user, not a first run.
-  const returning = (dayPrefs ?? []).some((d) => d.can_train);
+  // onboarded_at is the authoritative signal; a seeded training day is not, since the
+  // importer can create those without the user ever having seen this flow.
+  const returning = profile?.onboarded_at !== null && profile?.onboarded_at !== undefined;
 
   return (
     <OnboardingFlow
       initial={initial}
       firstName={(profile?.display_name ?? "").split(" ")[0] || null}
       returning={returning}
+      library={(library ?? []).map((e) => ({ name: e.name, muscleGroup: e.muscle_group }))}
     />
   );
 }

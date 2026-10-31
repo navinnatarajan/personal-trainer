@@ -65,16 +65,48 @@ export const TRAINING_LEVELS = [
   { value: "advanced", label: "Very experienced", hint: "Years of structured training" },
 ] as const;
 
-/** Common exclusions offered as chips. Free text covers the rest. */
+/**
+ * Quick-pick exclusions. Only a shortlist — the full library is searchable alongside it,
+ * and anything not in the library can be typed, since a user's "won't do" list is not
+ * limited to lifts we happen to know about.
+ */
 export const COMMON_EXCLUSIONS = [
   "Deadlifts",
   "Romanian Deadlift (DB)",
-  "Barbell squats",
   "Hack Squat",
   "DB Shoulder Press",
   "Pull-Up",
   "Flat Bench (BB)",
 ] as const;
+
+/** Sports and cardio people commonly already do, offered as a starting point. */
+export const COMMON_ACTIVITIES = [
+  "Basketball",
+  "Volleyball",
+  "Running",
+  "Cycling",
+  "Swimming",
+  "Football",
+  "Tennis",
+  "Yoga",
+  "Climbing",
+  "Walking",
+] as const;
+
+export const INTENSITIES = [
+  { value: "light", label: "Light", hint: "Barely affects the next day" },
+  { value: "moderate", label: "Moderate", hint: "Noticeable, recoverable" },
+  { value: "hard", label: "Hard", hint: "Legs or lungs are wrecked after" },
+] as const;
+
+const ActivitySchema = z.object({
+  name: z.string().min(1).max(60),
+  /** ISO weekdays. Empty is valid and means irregular — still worth knowing it exists. */
+  dows: z.array(z.number().int().min(1).max(7)).max(7),
+  intensity: z.enum(["light", "moderate", "hard"]),
+});
+
+export type ActivityInput = z.infer<typeof ActivitySchema>;
 
 const DayPrefSchema = z.object({
   dow: z.number().int().min(1).max(7),
@@ -111,6 +143,9 @@ export const OnboardingSchema = z.object({
   days: z.array(DayPrefSchema).length(7),
   checkinDow: z.number().int().min(1).max(7),
 
+  // --- what they already do outside the gym ---
+  activities: z.array(ActivitySchema).max(12),
+
   // --- limits ---
   excluded: z.array(z.string()).max(60),
   durableConstraints: z.string().max(2000).nullable(),
@@ -146,6 +181,10 @@ export function crossFieldErrors(input: OnboardingInput): string[] {
   }
   if (input.splitPreference === "upper_lower" && training.length < 2) {
     errors.push("Upper / Lower needs at least two training days.");
+  }
+
+  for (const a of input.activities) {
+    if (!a.name.trim()) errors.push("An activity needs a name.");
   }
 
   if (input.gymType !== "full" && input.equipment.length === 0) {

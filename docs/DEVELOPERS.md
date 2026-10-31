@@ -114,7 +114,7 @@ docs/                   this guide, PRODUCT, ARCHITECTURE, DECISIONS, PLAN, desi
 
 ```
 profiles           identity, goals (ordered enum[]), training level, check-in day,
-                   split + style preference, durable constraints
+                   split + style preference, durable constraints, onboarded_at
 exercises          per-user library; `movement_type` drives session order,
                    `preference` includes anchor (must appear 2x/week) and excluded
 exercise_targets   baseline and next target per exercise
@@ -128,6 +128,7 @@ body_metrics       weight, body fat, waist
 health_daily       steps/sleep per (user, date, provider) — Phase 2
 checkins           what the user said each week
 chat_messages      coach conversation
+user_activities    sport and cardio outside the gym — load the coach must schedule around
 ```
 
 ### Things the schema does that will surprise you

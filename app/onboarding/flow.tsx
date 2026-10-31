@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { completeOnboarding } from "./actions";
 import {
+  COMMON_ACTIVITIES,
   COMMON_EXCLUSIONS,
   DOW_LABEL,
   DOW_SHORT,
@@ -11,11 +12,18 @@ import {
   EQUIPMENT,
   GOALS,
   GYM_TYPES,
+  INTENSITIES,
   SPLITS,
   TRAINING_LEVELS,
   crossFieldErrors,
+  type ActivityInput,
   type OnboardingInput,
 } from "./schema";
+
+export interface LibraryEntry {
+  name: string;
+  muscleGroup: string;
+}
 
 /**
  * Six steps. Client-side so a step can be validated before the user moves on, and so the
@@ -28,10 +36,12 @@ export function OnboardingFlow({
   initial,
   firstName,
   returning,
+  library,
 }: {
   initial: OnboardingInput;
   firstName: string | null;
   returning: boolean;
+  library: LibraryEntry[];
 }) {
   const [data, setData] = useState<OnboardingInput>(initial);
   const [step, setStep] = useState(0);
@@ -42,7 +52,7 @@ export function OnboardingFlow({
     setData((d) => ({ ...d, [key]: value }));
 
   const needsEquipment = data.gymType !== "full";
-  const steps = ["You", "Now", "Gym", "Goals", "Week", "Limits"];
+  const steps = ["You", "Now", "Gym", "Goals", "Week", "Sport", "Limits"];
   const total = steps.length;
 
   function next() {
@@ -100,7 +110,8 @@ export function OnboardingFlow({
         {step === 2 && <StepGym data={data} set={set} needsEquipment={needsEquipment} />}
         {step === 3 && <StepGoals data={data} set={set} />}
         {step === 4 && <StepWeek data={data} set={set} />}
-        {step === 5 && <StepLimits data={data} set={set} />}
+        {step === 5 && <StepActivities data={data} set={set} />}
+        {step === 6 && <StepLimits data={data} set={set} library={library} />}
       </div>
 
       {errors.length > 0 && (
@@ -187,25 +198,14 @@ function StepYou({
         <Hint>Used for body-composition targets only.</Hint>
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Height">
-          <NumberInput
-            value={data.heightIn}
-            onChange={(v) => set("heightIn", v)}
-            unit="in"
-            placeholder="75"
-          />
-          <Hint>6&apos;3&quot; is 75</Hint>
-        </Field>
-        <Field label="Born">
-          <NumberInput
-            value={data.birthYear}
-            onChange={(v) => set("birthYear", v)}
-            placeholder="1990"
-          />
-          <Hint>Affects recovery</Hint>
-        </Field>
-      </div>
+      <Field label="Height">
+        <HeightPicker value={data.heightIn} onChange={(v) => set("heightIn", v)} />
+      </Field>
+
+      <Field label="Year of birth">
+        <YearPicker value={data.birthYear} onChange={(v) => set("birthYear", v)} />
+        <Hint>Affects recovery capacity and how much volume is sensible.</Hint>
+      </Field>
     </>
   );
 }
@@ -321,12 +321,12 @@ function StepGoals({ data, set }: { data: OnboardingInput; set: Setter }) {
     }
   }
 
-  function move(goal: Goal, dir: -1 | 1) {
-    const i = data.goals.indexOf(goal);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= data.goals.length) return;
-    const next = [...data.goals];
-    [next[i], next[j]] = [next[j], next[i]];
+  /** Moves a goal to a new index, shifting the rest — the list visibly reorders. */
+  function moveTo(goal: Goal, index: number) {
+    const from = data.goals.indexOf(goal);
+    if (from < 0) return;
+    const next = data.goals.filter((g) => g !== goal);
+    next.splice(index, 0, goal);
     set("goals", next as OnboardingInput["goals"]);
   }
 
@@ -343,61 +343,66 @@ function StepGoals({ data, set }: { data: OnboardingInput; set: Setter }) {
         sub="Up to three, in priority order. The first one wins when they conflict."
       />
 
-      <div className="flex flex-col gap-[7px]">
-        {GOALS.map((g) => {
-          const rank = data.goals.indexOf(g.value as Goal);
-          const on = rank >= 0;
-          return (
-            <div
-              key={g.value}
-              className={`flex items-center gap-3 rounded-[12px] border px-3 py-3 ${
-                on ? "border-sage/55 bg-sage/12" : "border-line bg-card-2"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => toggle(g.value as Goal)}
-                aria-pressed={on}
-                className="flex flex-1 items-center gap-3 text-left"
+      {/* Chosen goals, in order. The items themselves move — an earlier version renumbered
+          them in place, which read as a bug rather than a reorder. */}
+      {data.goals.length > 0 && (
+        <div className="flex flex-col gap-[7px]">
+          {data.goals.map((value, rank) => {
+            const g = GOALS.find((x) => x.value === value)!;
+            return (
+              <div
+                key={value}
+                className="flex items-center gap-3 rounded-[12px] border border-sage/55 bg-sage/12 px-3 py-3"
               >
-                <span
-                  className={`w-5 shrink-0 text-center font-mono text-[13px] font-semibold ${
-                    on ? "text-sage" : "text-line"
-                  }`}
-                >
-                  {on ? rank + 1 : "—"}
+                <span className="w-5 shrink-0 text-center font-mono text-[14px] font-semibold text-sage">
+                  {rank + 1}
                 </span>
-                <span className="flex flex-col">
+                <span className="flex flex-1 flex-col">
                   <span className="text-[14px] font-medium text-bone">{g.label}</span>
                   <span className="text-[11px] text-muted">{g.hint}</span>
                 </span>
-              </button>
-              {on && (
-                <span className="flex shrink-0 flex-col gap-1">
+                <span className="flex shrink-0 items-center gap-1">
+                  {rank > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => moveTo(value, 0)}
+                      aria-label={`Make ${g.label} the top priority`}
+                      className="rounded-full border border-line px-2.5 py-1.5 font-sans text-[10px] font-bold uppercase tracking-[0.08em] text-muted"
+                    >
+                      Top
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => move(g.value as Goal, -1)}
-                    disabled={rank === 0}
-                    aria-label={`Move ${g.label} up`}
-                    className="px-2 font-mono text-[11px] text-muted disabled:opacity-25"
+                    onClick={() => toggle(value)}
+                    aria-label={`Remove ${g.label}`}
+                    className="px-2 py-1 font-mono text-[15px] leading-none text-muted"
                   >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => move(g.value as Goal, 1)}
-                    disabled={rank === data.goals.length - 1}
-                    aria-label={`Move ${g.label} down`}
-                    className="px-2 font-mono text-[11px] text-muted disabled:opacity-25"
-                  >
-                    ▼
+                    ×
                   </button>
                 </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {data.goals.length < 3 && (
+        <Field label={data.goals.length ? "Add another" : "Pick your first"}>
+          <div className="flex flex-wrap gap-[7px]">
+            {GOALS.filter((g) => !data.goals.includes(g.value as Goal)).map((g) => (
+              <button
+                key={g.value}
+                type="button"
+                onClick={() => toggle(g.value as Goal)}
+                className="rounded-full border border-line bg-card-2 px-3 py-2 text-[12px] font-semibold text-muted"
+              >
+                + {g.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
 
       {conflict && (
         <div className="rounded-[12px] border border-clay/45 bg-clay/12 px-4 py-3">
@@ -515,35 +520,270 @@ function StepWeek({ data, set }: { data: OnboardingInput; set: Setter }) {
   );
 }
 
-function StepLimits({ data, set }: { data: OnboardingInput; set: Setter }) {
+function StepActivities({ data, set }: { data: OnboardingInput; set: Setter }) {
+  const [custom, setCustom] = useState("");
+
+  function add(name: string) {
+    const clean = name.trim();
+    if (!clean) return;
+    if (data.activities.some((a) => a.name.toLowerCase() === clean.toLowerCase())) return;
+    set("activities", [...data.activities, { name: clean, dows: [], intensity: "moderate" }]);
+    setCustom("");
+  }
+
+  function update(name: string, patch: Partial<ActivityInput>) {
+    set(
+      "activities",
+      data.activities.map((a) => (a.name === name ? { ...a, ...patch } : a)),
+    );
+  }
+
+  function remove(name: string) {
+    set("activities", data.activities.filter((a) => a.name !== name));
+  }
+
+  function toggleDow(activity: ActivityInput, dow: number) {
+    const has = activity.dows.includes(dow);
+    update(activity.name, {
+      dows: has ? activity.dows.filter((d) => d !== dow) : [...activity.dows, dow].sort(),
+    });
+  }
+
+  const unpicked = COMMON_ACTIVITIES.filter(
+    (c) => !data.activities.some((a) => a.name.toLowerCase() === c.toLowerCase()),
+  );
+
+  return (
+    <>
+      <Title
+        title="Anything else you do?"
+        sub="Sport and cardio outside the gym. This changes the plan: a hard Tuesday game means legs go elsewhere, and someone already running three times a week does not need conditioning added on top."
+      />
+
+      {data.activities.map((a) => (
+        <div
+          key={a.name}
+          className="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-3.5"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[14px] font-medium text-bone">{a.name}</span>
+            <button
+              type="button"
+              onClick={() => remove(a.name)}
+              aria-label={`Remove ${a.name}`}
+              className="px-2 font-mono text-[15px] leading-none text-muted"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <span className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-steel">
+              Usually on
+            </span>
+            <div className="grid grid-cols-7 gap-[4px]">
+              {[1, 2, 3, 4, 5, 6, 7].map((dow) => {
+                const on = a.dows.includes(dow);
+                return (
+                  <button
+                    key={dow}
+                    type="button"
+                    onClick={() => toggleDow(a, dow)}
+                    aria-pressed={on}
+                    className={`rounded-[9px] border py-2 font-mono text-[11px] ${
+                      on ? "border-mist bg-mist text-ink" : "border-line bg-card-2 text-muted"
+                    }`}
+                  >
+                    {DOW_SHORT[dow]}
+                  </button>
+                );
+              })}
+            </div>
+            {a.dows.length === 0 && <Hint>Leave blank if it is irregular.</Hint>}
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <span className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-steel">
+              How hard
+            </span>
+            <Segmented
+              options={INTENSITIES.map((i) => ({ value: i.value, label: i.label }))}
+              value={a.intensity}
+              onChange={(v) => update(a.name, { intensity: v as ActivityInput["intensity"] })}
+            />
+          </div>
+        </div>
+      ))}
+
+      {unpicked.length > 0 && (
+        <Field label={data.activities.length ? "Add another" : "What do you do?"}>
+          <div className="flex flex-wrap gap-[7px]">
+            {unpicked.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => add(name)}
+                className="rounded-full border border-line bg-card-2 px-3 py-2 text-[12px] font-semibold text-muted"
+              >
+                + {name}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
+      <Field label="Something else">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add(custom);
+              }
+            }}
+            placeholder="Brazilian jiu-jitsu, hiking…"
+            className="min-w-0 flex-1 rounded-[12px] border border-line bg-card-2 px-3 py-3 font-sans text-[14px] text-bone outline-none placeholder:text-steel/70"
+          />
+          <button
+            type="button"
+            onClick={() => add(custom)}
+            disabled={!custom.trim()}
+            className="shrink-0 rounded-[12px] border border-line px-4 font-sans text-[12px] font-bold uppercase tracking-[0.08em] text-muted disabled:opacity-40"
+          >
+            Add
+          </button>
+        </div>
+      </Field>
+
+      <Hint>Skip this if the gym is the only training you do.</Hint>
+    </>
+  );
+}
+
+function StepLimits({
+  data,
+  set,
+  library,
+}: {
+  data: OnboardingInput;
+  set: Setter;
+  library: LibraryEntry[];
+}) {
+  const [query, setQuery] = useState("");
+
   function toggle(name: string) {
     const has = data.excluded.includes(name);
     set("excluded", has ? data.excluded.filter((e) => e !== name) : [...data.excluded, name]);
   }
+
+  function addCustom() {
+    const clean = query.trim();
+    if (!clean || data.excluded.includes(clean)) return;
+    set("excluded", [...data.excluded, clean]);
+    setQuery("");
+  }
+
+  // Search the whole library, not just the shortlist — a "won't do" list is personal and
+  // is not limited to the handful of lifts we thought to offer.
+  const q = query.trim().toLowerCase();
+  const matches = q
+    ? library
+        .filter((e) => e.name.toLowerCase().includes(q) && !data.excluded.includes(e.name))
+        .slice(0, 8)
+    : [];
+  const exactInLibrary = library.some((e) => e.name.toLowerCase() === q);
+
+  const shortlist = COMMON_EXCLUSIONS.filter((n) => !data.excluded.includes(n));
 
   return (
     <>
       <Title title="Anything off limits?" sub="All optional — you can skip this." />
 
       <Field label="Won't do">
-        <div className="flex flex-wrap gap-[7px]">
-          {COMMON_EXCLUSIONS.map((name) => {
-            const on = data.excluded.includes(name);
-            return (
+        {data.excluded.length > 0 && (
+          <div className="mb-1 flex flex-wrap gap-[7px]">
+            {data.excluded.map((name) => (
               <button
                 key={name}
                 type="button"
                 onClick={() => toggle(name)}
-                aria-pressed={on}
-                className={`rounded-full border px-3 py-2 text-[12px] font-semibold ${
-                  on ? "border-sage bg-sage text-ink" : "border-line bg-card-2 text-muted"
-                }`}
+                aria-label={`Allow ${name} again`}
+                className="flex items-center gap-2 rounded-full border border-sage bg-sage px-3 py-2 text-[12px] font-semibold text-ink"
               >
                 {name}
+                <span aria-hidden="true" className="font-mono text-[13px] leading-none">
+                  ×
+                </span>
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
+
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addCustom();
+            }
+          }}
+          placeholder="Search your exercises, or type anything"
+          className="w-full rounded-[12px] border border-line bg-card-2 px-3 py-3 font-sans text-[14px] text-bone outline-none placeholder:text-steel/70"
+        />
+
+        {matches.length > 0 && (
+          <div className="flex flex-col overflow-hidden rounded-[12px] border border-line">
+            {matches.map((e, i) => (
+              <button
+                key={e.name}
+                type="button"
+                onClick={() => {
+                  toggle(e.name);
+                  setQuery("");
+                }}
+                className={`flex items-baseline justify-between gap-3 bg-card-2 px-3 py-2.5 text-left ${
+                  i > 0 ? "border-t border-line-2" : ""
+                }`}
+              >
+                <span className="text-[13px] text-bone">{e.name}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-steel">
+                  {e.muscleGroup}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {q.length > 1 && !exactInLibrary && (
+          <button
+            type="button"
+            onClick={addCustom}
+            className="self-start rounded-full border border-dashed border-line px-3 py-2 text-[12px] font-semibold text-muted"
+          >
+            + Add &ldquo;{query.trim()}&rdquo;
+          </button>
+        )}
+
+        {!q && shortlist.length > 0 && (
+          <div className="flex flex-wrap gap-[7px]">
+            {shortlist.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => toggle(name)}
+                className="rounded-full border border-line bg-card-2 px-3 py-2 text-[12px] font-semibold text-muted"
+              >
+                + {name}
+              </button>
+            ))}
+          </div>
+        )}
+
         <Hint>
           These are never programmed again. Anything you have already logged stays in your
           history.
@@ -555,7 +795,7 @@ function StepLimits({ data, set }: { data: OnboardingInput; set: Setter }) {
           value={data.durableConstraints ?? ""}
           onChange={(e) => set("durableConstraints", e.target.value || null)}
           rows={4}
-          placeholder="Left shoulder clicks on overhead pressing. Play basketball Tuesdays, so legs the day after is rough."
+          placeholder="Left shoulder clicks on overhead pressing. Tried RDLs and did not get on with them."
           className="w-full rounded-[12px] border border-line bg-card-2 px-3 py-3 font-sans text-[14px] leading-relaxed text-bone placeholder:text-steel/70"
         />
         <Hint>
@@ -678,6 +918,111 @@ function Radios({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Feet and inches, as native selects.
+ *
+ * A native select renders as a scroll wheel on iOS, which is the right interaction for a
+ * value with a small fixed range — and it avoids the "is 75 inches or centimetres?"
+ * confusion a bare number field invites. Stored as total inches, which is what the
+ * database and waist-to-height both want.
+ */
+function HeightPicker({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  const feet = value !== null ? Math.floor(value / 12) : null;
+  const inches = value !== null ? value - Math.floor(value / 12) * 12 : null;
+
+  function update(nextFeet: number | null, nextInches: number | null) {
+    if (nextFeet === null) return onChange(null);
+    onChange(nextFeet * 12 + (nextInches ?? 0));
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Select
+        value={feet === null ? "" : String(feet)}
+        onChange={(v) => update(v === "" ? null : Number(v), inches)}
+        placeholder="ft"
+        options={[4, 5, 6, 7].map((f) => ({ value: String(f), label: `${f} ft` }))}
+      />
+      <Select
+        value={inches === null ? "" : String(inches)}
+        onChange={(v) => update(feet, v === "" ? 0 : Number(v))}
+        placeholder="in"
+        options={Array.from({ length: 12 }, (_, i) => ({
+          value: String(i),
+          label: `${i} in`,
+        }))}
+      />
+      {value !== null && (
+        <span className="shrink-0 font-mono text-[12px] tabular-nums text-steel">
+          {value}&quot;
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Birth year as a select, newest first — most users are nearer the recent end. */
+function YearPicker({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  const thisYear = new Date().getFullYear();
+  const years = Array.from({ length: 84 }, (_, i) => thisYear - 14 - i);
+  return (
+    <Select
+      value={value === null ? "" : String(value)}
+      onChange={(v) => onChange(v === "" ? null : Number(v))}
+      placeholder="Year"
+      options={years.map((y) => ({ value: String(y), label: String(y) }))}
+    />
+  );
+}
+
+function Select({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: Array<{ value: string; label: string }>;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative flex-1">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={placeholder}
+        className="w-full appearance-none rounded-[12px] border border-line bg-card-2 px-3 py-3 pr-9 font-mono text-[16px] font-semibold tabular-nums text-bone outline-none"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-steel"
+      >
+        ▾
+      </span>
     </div>
   );
 }

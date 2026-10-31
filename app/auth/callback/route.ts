@@ -43,5 +43,7 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next");
   const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
+  // `/` itself redirects an unonboarded user to setup, so there is deliberately no
+  // profile lookup here: the decision lives in one place rather than two that can drift.
   return NextResponse.redirect(`${origin}${target}`);
 }

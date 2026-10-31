@@ -23,7 +23,7 @@ import {
   deriveUnmetInstructions,
   markStatementRecency,
 } from "./derive";
-import type { CoachContext, EpisodicMemory, GoalFacts } from "./types";
+import type { ActivityFact, CoachContext, EpisodicMemory, GoalFacts } from "./types";
 
 /** How far back the observed and episodic layers look. */
 export const WINDOW_WEEKS = 4;
@@ -67,7 +67,7 @@ export async function assembleCoachContext(
   const windowWeeks = opts.windowWeeks ?? WINDOW_WEEKS;
 
   // Fetched together; they are independent and the round trips add up on a phone.
-  const [profileRes, dayPrefRes, exerciseRes, sessionRes, bodyRes, weekRes, checkinRes] =
+  const [profileRes, dayPrefRes, exerciseRes, sessionRes, bodyRes, weekRes, activityRes, checkinRes] =
     await Promise.all([
       db
         .from("profiles")
@@ -109,6 +109,8 @@ export async function assembleCoachContext(
         .order("week_number", { ascending: false })
         .limit(windowWeeks),
 
+      db.from("user_activities").select("name, dows, intensity").eq("user_id", userId),
+
       db
         .from("checkins")
         .select("week_number, user_constraints, ai_summary")
@@ -117,7 +119,7 @@ export async function assembleCoachContext(
         .limit(windowWeeks),
     ]);
 
-  for (const res of [profileRes, dayPrefRes, exerciseRes, sessionRes, bodyRes, weekRes, checkinRes]) {
+  for (const res of [profileRes, dayPrefRes, exerciseRes, sessionRes, bodyRes, weekRes, activityRes, checkinRes]) {
     if (res.error) throw res.error;
   }
 
@@ -345,6 +347,15 @@ export async function assembleCoachContext(
       days: trainingDays.map((d) => ({ dow: d.dow, durationMin: d.duration_min })),
       checkinDow: profile.checkin_dow,
     },
+    activities: ((activityRes.data ?? []) as Array<{
+      name: string;
+      dows: number[] | null;
+      intensity: string;
+    }>).map((a) => ({
+      name: a.name,
+      dows: a.dows ?? [],
+      intensity: a.intensity as ActivityFact["intensity"],
+    })),
     measured,
     observed,
     episodic,
