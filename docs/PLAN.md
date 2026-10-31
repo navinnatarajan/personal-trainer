@@ -311,6 +311,10 @@ with logged sets. Historical sessions keep `started_at`/`ended_at` null with sta
 the explicit timer exists to prevent.
 
 ### Phase 1 — The loop (this is the MVP) (`phase-1-loop`)
+
+**Open blocker before `/plan` can ship:** generation measures ~115s and Vercel Hobby caps
+functions at 60s. Decide between lowering effort, trimming output, a background job with
+polling, or Vercel Pro — see `DECISIONS.md`. Onboarding is built and working.
 Onboarding → check-in → plan generation → session logger with start/stop → dashboard → coach chat. **Ship and use this for two weeks before touching Phase 2.** If the loop works, the product is proven; if it doesn't, health data wouldn't have saved it.
 
 ### Phase 2 — Health data (`phase-2-health`)

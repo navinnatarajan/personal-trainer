@@ -125,6 +125,33 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Plan generation takes ~115s, which breaks a serverless deploy
+**2026-10-31** — Measured, not estimated: assembling the context takes **0.7 seconds**, and
+the model call takes **115.6 seconds** (2,673 in / 8,261 out, effort `high`).
+
+That is a problem for the deploy, not for the code. Vercel's Hobby plan caps a serverless
+function at **60 seconds**, so plan generation as a single request will work perfectly in
+local development and time out in production. Worth stating plainly because it is otherwise
+discovered by a user on a check-in evening.
+
+It is also the honest shape of the problem: a two-minute operation that happens once a week
+is a background job, and serving it inside a request is fighting that.
+
+Options, roughly in order of how much they cost:
+
+1. **Lower `effort`** from `high` to `medium`. Cheapest change and might land under 60s,
+   but it trades the reasoning quality the project is built on. The comparison run timed
+   out before completing, so there is no data either way yet.
+2. **Trim the output.** 8,261 output tokens is a lot of prose — the week note and coaching
+   notes are long. Shortening them cuts time roughly proportionally.
+3. **Background job plus polling.** Start generation, return immediately, poll for the
+   result. Architecturally correct, most work.
+4. **Vercel Pro**, which raises the ceiling to 300s and makes the problem disappear for
+   $20/month.
+
+Not yet decided. The measurement is the point: whatever is chosen is chosen against a real
+number, and `/plan` must not be built assuming one request will do.
+
 ### Activities outside the gym are load, not rest
 **2026-10-31** — Onboarding asked nothing about sport or cardio, so the coach treated every
 non-gym day as full recovery. That is wrong for anyone with a sport: a hard Tuesday game

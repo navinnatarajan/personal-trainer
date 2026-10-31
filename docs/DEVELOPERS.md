@@ -231,6 +231,11 @@ contract: a fact absent from those types cannot be acted on, whatever the databa
   30-minute norm.
 - **Waist-to-height**, not BMI, which penalises height and muscle.
 
+> **Plan generation takes about 115 seconds** — measured: 0.7s to assemble the context,
+> 115.6s for the model call at effort `high`. Vercel Hobby caps a serverless function at
+> 60s, so this cannot be a single request in production. See `DECISIONS.md` for the
+> options, and do not build a screen that assumes one round trip will do.
+
 `assemble.ts` is the only impure part: it queries, then hands everything to the pure
 functions. Two traps live here.
 
