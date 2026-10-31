@@ -125,6 +125,31 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### A test that passed by accident, and two credentials that expired
+**2026-10-31** — Picking the project back up after three weeks surfaced three things.
+
+**The Anthropic key expired**, exactly as designed — created 29 September with a 30-day
+expiry. The failure is a bare `401 invalid x-api-key`, which is precisely the "looks like
+a bug" outage the 30-day choice was recorded as costing. Worth noting the calendar
+reminder was set 3 days ahead and still was not acted on; 5 days would be better.
+
+**The Supabase project auto-paused** after 7 idle days on the free tier. The symptom is
+not an error but `NXDOMAIN` — the DNS record disappears entirely, so it reads as a network
+fault rather than a paused project. `npx supabase projects list` reports
+`status=INACTIVE`, which is the quickest way to tell the two apart. No data was lost:
+all 37 exercises, 155 set logs and 120,285 lbs of volume came back intact.
+
+**An integration test had been passing vacuously.** It resolved an exercise name with
+`[...byId.keys()].find((n) => byId.get(n))`, which always returns the first key in the map
+regardless of which progression entry is being checked — so it compared an unrelated
+exercise against the no-history set. It only surfaced when the map's iteration order
+happened to change.
+
+The code was always correct; the assertion was not. Rewritten to resolve the id properly
+and to assert in both directions: no lift without history is ever given a weight increase,
+and every lift without history is marked for calibration. Same lesson as the UTC date bug
+— a green test is not evidence until you have seen it fail for the right reason.
+
 ### Split preference, incline priority, and compounds as a guideline
 **2026-10-10** — Three changes from reviewing generated output as the user rather than as
 the builder.

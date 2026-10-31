@@ -66,16 +66,38 @@ describe("assembleCoachContext against the live database", () => {
 
   it("never proposes a weight increase for an exercise with no history", () => {
     // The guard that matters: an unseen lift must be calibrated, never progressed.
+    //
+    // An earlier version of this test resolved the name with
+    // `[...byId.keys()].find((n) => byId.get(n))`, which always returns the *first* key
+    // regardless of the progression entry being checked — so it compared an unrelated
+    // exercise against the no-history set and passed by accident. Resolve the id properly.
     const noHistory = new Set(
       ctx.programmable.filter((p) => !p.hasHistory).map((p) => p.name),
     );
-    const byId = new Map(ctx.programmable.map((p) => [p.name, p]));
-    for (const p of ctx.progression) {
-      const name = [...byId.keys()].find((n) => byId.get(n));
-      if (name && noHistory.has(name)) {
-        expect(p.action).not.toBe("add_weight");
-      }
-    }
+
+    const offenders = ctx.progression
+      .filter((p) => p.action === "add_weight")
+      .map((p) => ctx.exerciseNames[p.exerciseId] ?? p.exerciseId)
+      .filter((name) => noHistory.has(name));
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("marks every exercise with no logged sets as needing a baseline", () => {
+    // The other half of the same rule, stated positively: a lift we have never seen must
+    // be calibrated rather than guessed at.
+    const wrong = ctx.programmable
+      .filter((e) => !e.hasHistory)
+      .map((e) => {
+        const id = Object.keys(ctx.exerciseNames).find(
+          (k) => ctx.exerciseNames[k] === e.name,
+        );
+        const p = ctx.progression.find((x) => x.exerciseId === id);
+        return { name: e.name, action: p?.action };
+      })
+      .filter((x) => x.action !== undefined && x.action !== "establish_baseline");
+
+    expect(wrong).toEqual([]);
   });
 
   it("excludes nothing the user has ruled out from the programmable set", () => {
