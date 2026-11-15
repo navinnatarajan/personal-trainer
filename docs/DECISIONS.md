@@ -125,6 +125,41 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Security and best-practice review, and the one real bug it found
+**2026-11-15** — Full review of the branch. **No HIGH or MEDIUM security findings.**
+
+Verified rather than assumed: the service-role key appears nowhere web-reachable (only
+`scripts/` and integration tests); every Server Action checks `getUser()` except `signOut`,
+which needs none; authorization never uses `getSession()`; no raw SQL or string
+interpolation reaches a query; no `dangerouslySetInnerHTML`, `eval`, or `innerHTML`; **all
+14 tables have RLS enabled with a policy**; no client component imports a server-only
+module; and the built `.next/static` bundle was grepped for the **literal values** of all
+three secrets, finding none.
+
+Two attempted breaks that failed, worth recording so nobody re-litigates them:
+
+- **The OAuth `next` redirect.** Backslash tricks like `/\evil.com` do not work, because the
+  redirect is built as `` `${origin}${target}` `` — origin is always prepended, so no input
+  can reach another host however the browser normalises the path.
+- **Proxy path matching.** `pathname === p || pathname.startsWith(p + "/")` means
+  `/loginfoo` is not treated as public. No prefix-confusion bypass.
+
+**The real find came from the best-practice pass, not the security one.**
+`app/onboarding/page.tsx` destructured only `data` from six pre-fill queries and discarded
+`error`. A failed read therefore produced a *silently empty form* — and because the design
+is "confirm rather than retype", submitting that form would have overwritten a real profile
+with blanks. Data loss wearing the costume of a setup screen. It now throws with a message
+telling the user to reload rather than fill it in.
+
+Two low-severity items carried into the build rather than fixed here:
+
+- `week_plans.generation_error` will store `err.message` from the SDK. RLS limits it to the
+  owning user and SDK errors do not embed the key, but it should be truncated and
+  key-shaped content stripped before storing.
+- The `one in-flight generation per user` partial index can lock a user out permanently if
+  a generation dies leaving the row at `generating`. Needs a staleness reclaim — flagged
+  now because it only surfaces after something else has already failed.
+
 ### A committed plan is locked; adjustment is the only escape
 **2026-11-15** — My design allowed regenerating a week at any time. The user's model is
 better and is the one being built:

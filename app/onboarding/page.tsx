@@ -16,14 +16,7 @@ export default async function OnboardingPage() {
 
   const supabase = await createClient();
 
-  const [
-    { data: profile },
-    { data: dayPrefs },
-    { data: metrics },
-    { data: excluded },
-    { data: activities },
-    { data: library },
-  ] = await Promise.all([
+  const results = await Promise.all([
       supabase
         .from("profiles")
         .select(
@@ -46,6 +39,26 @@ export default async function OnboardingPage() {
       // The whole library, so any lift can be excluded — not only the shortlist.
       supabase.from("exercises").select("name, muscle_group").eq("user_id", user.id).order("name"),
     ]);
+
+  // A failed read must not silently produce an empty form. The whole point of pre-filling
+  // is that the user confirms rather than retypes — so a blank form after a read failure
+  // invites them to submit blanks over a real profile, which is data loss wearing the
+  // costume of a setup screen.
+  const readError = results.find((r) => r.error)?.error;
+  if (readError) {
+    throw new Error(
+      `Could not load your profile: ${readError.message}. Reload rather than filling this in — submitting now would overwrite what is saved.`,
+    );
+  }
+
+  const [
+    { data: profile },
+    { data: dayPrefs },
+    { data: metrics },
+    { data: excluded },
+    { data: activities },
+    { data: library },
+  ] = results;
 
   const prefByDow = new Map((dayPrefs ?? []).map((d) => [d.dow, d]));
 
