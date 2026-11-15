@@ -125,6 +125,41 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### A committed plan is locked; adjustment is the only escape
+**2026-11-15** — My design allowed regenerating a week at any time. The user's model is
+better and is the one being built:
+
+- **Before commit** — regenerate freely, or ask the coach to adjust and re-run. Nothing is
+  committed, so nothing is lost.
+- **After commit** — the week cannot be regenerated. The only way to change it is a
+  mid-week adjustment, which rewrites the remaining days and leaves logged sessions alone.
+- **Changing the check-in cycle** is the one exception, and it is explicit. The user picks
+  either regenerating (and losing the week's progress) or starting a fresh cycle from a
+  chosen day.
+
+The reasoning, in the user's words: otherwise the user "can't regenerate, only do mid-week
+adjustments". Free regeneration turns the plan into a slot machine — reroll until Thursday
+is not leg day — which costs $0.14 a spin and quietly destroys the progression discipline
+the whole app exists to enforce. A plan you can reroll is not a commitment.
+
+**Known consequence of the v1 scope:** mid-week adjustment is deliberately out of the first
+build, so a committed plan is temporarily immutable. Acceptable for the first real test
+(commit, train, log), and the gap closes with the mid-week view.
+
+### /plan v1 scope: generate, review, commit
+**2026-11-15** — The first build covers the check-in path only: enter this week's notes,
+generate, read it, commit it. Deliberately excluded:
+
+- **The mid-week status view.** It needs logged sessions to show anything, and there are
+  none yet — building it now means designing against imagined data.
+- **Inline editing** of exercises and weights. The review stage offers accept, regenerate,
+  or a free-text correction that re-runs generation. Inline editing is a lot of UI for a
+  problem we cannot yet size: we do not know whether generated plans are usually 90% right
+  or usually fine as-is.
+
+The free-text correction is the same affordance as the contextual Ask in the designs, and
+costs one generation per use.
+
 ### Generation runs at effort `medium`, measured not assumed
 **2026-11-15** — Against real data, with identical context and prompt:
 
