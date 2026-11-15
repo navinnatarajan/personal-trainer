@@ -125,6 +125,43 @@ These values should be sanity-checked against the actual gym: a cable stack that
 5s or 10s would make a 2.5 increment unreachable, and the progression logic would then
 prescribe a weight that cannot be loaded.
 
+### Generation runs at effort `medium`, measured not assumed
+**2026-11-15** — Against real data, with identical context and prompt:
+
+| | `high` | `medium` |
+|---|---|---|
+| Time | 115.6s | **71.5s** |
+| Cost | $0.237 | **$0.141** |
+| Output tokens | 8,261 | 5,110 |
+| Validation warnings | 0 | 0 |
+
+38% faster and 40% cheaper, with no detectable loss. The medium run still deferred to the
+ortho ("if the clearance came with limits I haven't been told, follow theirs over mine"),
+left Thursday clear for volleyball, put legs on the only day free of both sports, and noted
+the banked Flat Bench 140. That is the whole behaviour the prompt was tuned for.
+
+Raise it back to `high` only if plan quality visibly degrades — not pre-emptively. Note
+that lowering effort cuts thinking tokens, which is why it is cheaper *and* faster, unlike
+fast mode which buys speed at double the price.
+
+### The local schema harness was weaker than production
+**2026-11-15** — Migration 0008 added two enum values and created a partial index
+referencing one of them in the same file. `./scripts/verify-schema.sh` passed. `supabase db
+push` rejected it: *unsafe use of new value "generating" of enum type* (SQLSTATE 55P04).
+
+The cause is that `psql` autocommits each statement by default, while `supabase db push`
+applies a migration file inside a transaction — and Postgres forbids using a newly-added
+enum value within the transaction that added it. **The harness was verifying under weaker
+rules than production**, which is not verifying.
+
+Fixed at the class level rather than the instance: the harness now passes
+`--single-transaction`, matching how the real deploy applies a file. Confirmed by
+reassembling the broken migration and watching the harness reproduce the exact production
+error, then splitting it into 0008 (add the values) and 0009 (use them).
+
+Same shape as the stale-workbook bug: a check that passes against different conditions than
+the real thing proves nothing.
+
 ### Plan generation takes ~115s, which breaks a serverless deploy
 **2026-10-31** — Measured, not estimated: assembling the context takes **0.7 seconds**, and
 the model call takes **115.6 seconds** (2,673 in / 8,261 out, effort `high`).

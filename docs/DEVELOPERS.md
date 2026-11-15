@@ -175,6 +175,14 @@ npx supabase db push
 npx supabase migration list              # local vs remote
 ```
 
+Two rules that come from migrations that got through local checks:
+
+- **A migration that adds an enum value cannot use it in the same file.** Postgres forbids
+  it inside a transaction, and `supabase db push` applies each file in one. Split into two
+  migrations.
+- The harness applies each file with `--single-transaction` for exactly this reason. Do not
+  remove that flag to make a migration pass.
+
 **Always run `./scripts/verify-schema.sh` before pushing.** It rebuilds a throwaway local
 database from empty, applies every migration, and asserts behaviour — generated-column
 arithmetic, the one-active-session rule, and that RLS actually denies a second user. The
@@ -231,8 +239,8 @@ contract: a fact absent from those types cannot be acted on, whatever the databa
   30-minute norm.
 - **Waist-to-height**, not BMI, which penalises height and muscle.
 
-> **Plan generation takes about 115 seconds** — measured: 0.7s to assemble the context,
-> 115.6s for the model call at effort `high`. That fits inside Vercel's function limit
+> **Plan generation takes about 70 seconds** at effort `medium` (115s at `high` — see
+> `DECISIONS.md` for the measured comparison). 0.7s of that is assembling the context. It fits inside Vercel's function limit
 > (Hobby allows 300s on Fluid Compute), so it *can* be one request — but it should not be:
 > two minutes on a spinner is bad UX, and it sits close to the 120s proxied-request
 > timeout. Kick generation off, respond immediately, show progress. See `DECISIONS.md`.

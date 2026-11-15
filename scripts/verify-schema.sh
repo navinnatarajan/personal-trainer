@@ -35,9 +35,14 @@ createdb "$DB"
 echo "Applying auth stub..."
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/test/auth_stub.sql
 
+# Each file is applied inside a single transaction, because that is what
+# `supabase db push` does. psql otherwise autocommits per statement, which silently
+# permits things the real deploy rejects — notably using a newly-added enum value in the
+# same file that added it (SQLSTATE 55P04). Verifying under weaker rules than production
+# is not verifying.
 for migration in supabase/migrations/*.sql; do
   echo "Applying $(basename "$migration")..."
-  psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$migration"
+  psql -q -v ON_ERROR_STOP=1 --single-transaction -d "$DB" -f "$migration"
 done
 
 echo "Running verification..."

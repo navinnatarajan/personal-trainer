@@ -101,7 +101,11 @@ export async function generateWeekPlan(opts: GenerateOptions): Promise<GenerateR
       // Programming a week around competing constraints is exactly the case for it.
       thinking: { type: "adaptive" },
       output_config: {
-        effort: "high",
+        // Measured against real data: medium takes 71.5s and costs $0.141, where high
+        // takes 115.6s and costs $0.237 — 38% faster and 40% cheaper, with zero
+        // validation warnings either way and no detectable loss in the coaching notes.
+        // Raise this to "high" only if plan quality visibly degrades.
+        effort: "medium",
         format: zodOutputFormat(WeekPlanSchema),
       },
       system: [
