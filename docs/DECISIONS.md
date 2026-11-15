@@ -129,28 +129,33 @@ prescribe a weight that cannot be loaded.
 **2026-10-31** — Measured, not estimated: assembling the context takes **0.7 seconds**, and
 the model call takes **115.6 seconds** (2,673 in / 8,261 out, effort `high`).
 
-That is a problem for the deploy, not for the code. Vercel's Hobby plan caps a serverless
-function at **60 seconds**, so plan generation as a single request will work perfectly in
-local development and time out in production. Worth stating plainly because it is otherwise
-discovered by a user on a check-in evening.
+**Correction, 2026-11-15.** This entry originally said Vercel's Hobby plan caps a function
+at 60 seconds and called that a hard blocker. **That was wrong.** Vercel's limits page
+states that Functions run on Fluid Compute, enabled by default, where Hobby allows
+**300s default and max** and Pro allows 300s default / 800s max. 115.6s fits comfortably.
+The claim came from pre-Fluid-Compute knowledge and was not checked before being written
+down.
 
-It is also the honest shape of the problem: a two-minute operation that happens once a week
-is a background job, and serving it inside a request is fighting that.
+What survives the correction is the user-experience argument, which was always the better
+one: **two minutes in front of a spinner is bad regardless of what the platform permits.**
+There is also a 120s proxied-request timeout on the same page — it applies to rewrites to
+external destinations rather than to a project's own functions, but 115.6s against any 120s
+ceiling is a four-second margin and not something to design on.
 
-Options, roughly in order of how much they cost:
+So the conclusion changes from "this cannot be a single request" to "this can be, and still
+should not be". Generation gets kicked off, the user gets an immediate response, and the
+screen shows progress while it works.
 
-1. **Lower `effort`** from `high` to `medium`. Cheapest change and might land under 60s,
-   but it trades the reasoning quality the project is built on. The comparison run timed
-   out before completing, so there is no data either way yet.
-2. **Trim the output.** 8,261 output tokens is a lot of prose — the week note and coaching
-   notes are long. Shortening them cuts time roughly proportionally.
-3. **Background job plus polling.** Start generation, return immediately, poll for the
-   result. Architecturally correct, most work.
-4. **Vercel Pro**, which raises the ceiling to 300s and makes the problem disappear for
-   $20/month.
+Options still open on top of that, for latency rather than for correctness:
 
-Not yet decided. The measurement is the point: whatever is chosen is chosen against a real
-number, and `/plan` must not be built assuming one request will do.
+1. **Lower `effort`** from `high` to `medium`. The comparison run timed out before
+   completing, so there is still no quality-versus-latency data.
+2. **Trim the output.** 8,261 output tokens is a lot of prose, and time scales roughly with
+   it — but the week note and coaching notes are the best part of the product.
+
+Worth keeping as a lesson separate from the facts: a platform limit recalled from memory is
+a guess. This one was written into three documents and shaped a phase plan before anyone
+checked it against the vendor's own page.
 
 ### Activities outside the gym are load, not rest
 **2026-10-31** — Onboarding asked nothing about sport or cardio, so the coach treated every

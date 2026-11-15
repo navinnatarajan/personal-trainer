@@ -312,9 +312,10 @@ the explicit timer exists to prevent.
 
 ### Phase 1 — The loop (this is the MVP) (`phase-1-loop`)
 
-**Open blocker before `/plan` can ship:** generation measures ~115s and Vercel Hobby caps
-functions at 60s. Decide between lowering effort, trimming output, a background job with
-polling, or Vercel Pro — see `DECISIONS.md`. Onboarding is built and working.
+**Not a blocker after all:** generation measures ~115s, and Vercel Hobby allows 300s on
+Fluid Compute — the earlier 60s claim was wrong and is corrected in `DECISIONS.md`. It
+still should not be a blocking request, for UX rather than platform reasons. Onboarding is
+built and working; `/plan` and the session logger are what remain.
 Onboarding → check-in → plan generation → session logger with start/stop → dashboard → coach chat. **Ship and use this for two weeks before touching Phase 2.** If the loop works, the product is proven; if it doesn't, health data wouldn't have saved it.
 
 ### Phase 2 — Health data (`phase-2-health`)

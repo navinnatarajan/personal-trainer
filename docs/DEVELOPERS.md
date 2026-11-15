@@ -232,9 +232,10 @@ contract: a fact absent from those types cannot be acted on, whatever the databa
 - **Waist-to-height**, not BMI, which penalises height and muscle.
 
 > **Plan generation takes about 115 seconds** — measured: 0.7s to assemble the context,
-> 115.6s for the model call at effort `high`. Vercel Hobby caps a serverless function at
-> 60s, so this cannot be a single request in production. See `DECISIONS.md` for the
-> options, and do not build a screen that assumes one round trip will do.
+> 115.6s for the model call at effort `high`. That fits inside Vercel's function limit
+> (Hobby allows 300s on Fluid Compute), so it *can* be one request — but it should not be:
+> two minutes on a spinner is bad UX, and it sits close to the 120s proxied-request
+> timeout. Kick generation off, respond immediately, show progress. See `DECISIONS.md`.
 
 `assemble.ts` is the only impure part: it queries, then hands everything to the pure
 functions. Two traps live here.
