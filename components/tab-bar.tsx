@@ -7,15 +7,16 @@ import Link from "next/link";
  * The coach has no tab deliberately — every high-value question happens in context, and a
  * separate chat tab makes the user leave that context and rebuild it by typing.
  */
-export function TabBar({ active }: { active: "lift" | "plan" | "review" }) {
+export function TabBar({ active }: { active: "lift" | "plan" | "review" | "profile" }) {
   const tabs = [
     { id: "lift", label: "Lift", href: "/" },
     { id: "plan", label: "Plan", href: "/plan" },
     { id: "review", label: "Review", href: "/review" },
+    { id: "profile", label: "You", href: "/profile" },
   ] as const;
 
   return (
-    <nav className="sticky bottom-0 grid grid-cols-3 border-t border-line bg-ink px-2 pb-3.5 pt-2.5">
+    <nav className="sticky bottom-0 grid grid-cols-4 border-t border-line bg-ink px-2 pb-3.5 pt-2.5">
       {tabs.map((t) => (
         <Link
           key={t.id}
