@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser, createClient } from "@/lib/supabase/server";
 import { getGenerationStatus, serviceClient } from "@/lib/coach/run-generation";
 import { PlanScreen } from "./plan-screen";
+import { TabBar } from "@/components/tab-bar";
 
 export default async function PlanPage() {
   const user = await getUser();
@@ -24,5 +25,10 @@ export default async function PlanPage() {
 
   const status = await getGenerationStatus(serviceClient(), user.id);
 
-  return <PlanScreen initialStatus={status} checkinDow={profile.checkin_dow} />;
+  return (
+    <>
+      <PlanScreen initialStatus={status} checkinDow={profile.checkin_dow} />
+      <TabBar active="plan" />
+    </>
+  );
 }
