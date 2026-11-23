@@ -64,6 +64,13 @@ npm run dev                     # http://localhost:3000
 > The scaffold's own `AGENTS.md` tells you to read `node_modules/next/dist/docs/` before
 > writing code; those docs are bundled locally and are the authority over anything recalled.
 
+If `npm run build` fails with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'`
+repeated many times, the cause is **no outbound network access to `fonts.gstatic.com`**:
+`next/font/google` downloads font files at build time. It is an environment problem, not a
+code one — `npm run dev` still works from cache, and Vercel's build machines have network
+access, so production is unaffected. Confirm by checking whether the same failure happens
+on an older commit.
+
 If `tsc` reports `Duplicate identifier 'LayoutProps'` or conflicting definitions in
 `.next/types/*.d 2.ts`, the cause is `next dev` and `next build` having written to the same
 directory. It is generated output: `rm -rf .next && npx next typegen` fixes it, and nothing
