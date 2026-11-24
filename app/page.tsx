@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient, getUser } from "@/lib/supabase/server";
 import { todayInTimezone } from "@/lib/coach/assemble";
 import { TabBar } from "@/components/tab-bar";
+import { SessionCard, type SessionSummary } from "@/components/session-card";
 
 /**
  * Lift — what you see when you open the app.
@@ -79,23 +80,21 @@ export default async function HomePage() {
     );
   }
 
-  // A committed week exists: show today, and the week around it.
+  // A committed week exists. Exercises are fetched for every session, not just today:
+  // seeing what is coming is most of why anyone opens the week, and a card that only
+  // shows a session name tells you nothing you can act on.
   const { data: sessions } = await supabase
     .from("planned_sessions")
-    .select("id, date, dow, session_name, time_budget_min, warmup_min, headline")
+    .select(
+      "id, date, dow, session_name, time_budget_min, warmup_min, warmup_note, headline, " +
+        "planned_exercises(sort_order, sets, target_weight, target_reps, rest_sec, superset_group, tag, coaching_note, exercises(name))",
+    )
     .eq("week_plan_id", activePlan.id)
     .order("date");
 
-  const all = sessions ?? [];
+  const all = (sessions ?? []).map(toSummary);
   const todaySession = all.find((s) => s.date === today) ?? null;
   const upcoming = all.filter((s) => s.date > today);
-
-  const { count: todayExercises } = todaySession
-    ? await supabase
-        .from("planned_exercises")
-        .select("id", { count: "exact", head: true })
-        .eq("planned_session_id", todaySession.id)
-    : { count: 0 };
 
   return (
     <>
@@ -110,26 +109,30 @@ export default async function HomePage() {
         </header>
 
         {todaySession ? (
-          <div className="flex flex-col gap-3.5 rounded-[20px] bg-sage p-5 text-ink">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink/60">
-              {longDow(todaySession.dow)} · today
-            </span>
-            <div>
-              <div className="font-display text-[30px] font-semibold uppercase leading-none tracking-[-0.03em]">
-                {todaySession.session_name}
+          <>
+            <div className="flex flex-col gap-3.5 rounded-[20px] bg-sage p-5 text-ink">
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink/60">
+                {longDow(todaySession.dow)} · today
+              </span>
+              <div>
+                <div className="font-display text-[30px] font-semibold uppercase leading-none tracking-[-0.03em]">
+                  {todaySession.sessionName}
+                </div>
+                <div className="mt-1.5 text-[13px] font-medium text-ink/70">
+                  {todaySession.exercises.length} exercises · {todaySession.timeBudgetMin} min
+                </div>
               </div>
-              <div className="mt-1.5 text-[13px] font-medium text-ink/70">
-                {todayExercises ?? 0} exercises · {todaySession.time_budget_min} min
+              {todaySession.headline && (
+                <p className="text-[13px] leading-snug text-ink/75">{todaySession.headline}</p>
+              )}
+              {/* The logger is the next thing to build; until then this is honest about it. */}
+              <div className="w-full rounded-full bg-ink/10 px-4 py-3 text-center font-sans text-[12px] font-semibold uppercase tracking-[0.1em] text-ink/55">
+                Logging coming next
               </div>
             </div>
-            {todaySession.headline && (
-              <p className="text-[13px] leading-snug text-ink/75">{todaySession.headline}</p>
-            )}
-            {/* The logger is the next thing to build; until then this is honest about it. */}
-            <div className="w-full rounded-full bg-ink/10 px-4 py-3 text-center font-sans text-[12px] font-semibold uppercase tracking-[0.1em] text-ink/55">
-              Logging coming next
-            </div>
-          </div>
+            {/* Open by default: this is the session you are about to do. */}
+            <SessionCard session={todaySession} defaultOpen accent="sage" />
+          </>
         ) : (
           <div className="flex flex-col gap-2 rounded-[20px] border border-line bg-card p-5">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
@@ -148,17 +151,7 @@ export default async function HomePage() {
               Rest of the week
             </span>
             {upcoming.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-baseline justify-between gap-3 rounded-[12px] border border-line bg-card px-4 py-3"
-              >
-                <span className="font-mono text-[12px] font-semibold text-bone">
-                  {s.dow.toUpperCase()} · {s.session_name}
-                </span>
-                <span className="font-mono text-[11px] text-muted">
-                  {s.time_budget_min}m
-                </span>
-              </div>
+              <SessionCard key={s.date} session={s} />
             ))}
           </div>
         )}
@@ -167,6 +160,34 @@ export default async function HomePage() {
     </>
   );
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** Maps a planned_sessions row with its joined exercises into the card's shape. */
+function toSummary(s: any): SessionSummary {
+  return {
+    dow: s.dow,
+    date: s.date,
+    sessionName: s.session_name,
+    timeBudgetMin: s.time_budget_min,
+    warmupMin: s.warmup_min ?? null,
+    warmupNote: s.warmup_note ?? null,
+    headline: s.headline ?? null,
+    exercises: (s.planned_exercises ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((e: any) => ({
+        name: e.exercises?.name ?? "Unknown exercise",
+        sets: e.sets,
+        targetReps: e.target_reps,
+        targetWeight: e.target_weight === null ? null : Number(e.target_weight),
+        restSec: e.rest_sec ?? 60,
+        supersetGroup: e.superset_group ?? null,
+        tag: e.tag ?? null,
+        coachingNote: e.coaching_note ?? "",
+      })),
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function firstName(name: string | null): string {
   return (name ?? "").split(" ")[0] || "Welcome";

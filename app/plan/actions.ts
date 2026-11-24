@@ -46,10 +46,12 @@ export async function requestPlan(notes: string): Promise<ActionResult> {
 
   const db = serviceClient();
 
-  // A committed week cannot be regenerated — the only way to change it is a mid-week
-  // adjustment. Free regeneration would turn the plan into a slot machine: reroll until
-  // Thursday is not leg day, at a real cost per spin, which undermines the progression
-  // discipline the app exists to enforce.
+  // A committed week cannot be regenerated on a whim — that would make the plan a slot
+  // machine, rerolled until Thursday is not leg day, at a real cost per spin.
+  //
+  // But a week nobody has trained yet has nothing to protect, and refusing to rebuild it
+  // traps the user with a plan built from data they have since corrected. So the rule is
+  // about protecting *logged work*, not about the plan being untouchable.
   const { data: active, error: activeError } = await db
     .from("week_plans")
     .select("id, week_number")
@@ -59,13 +61,18 @@ export async function requestPlan(notes: string): Promise<ActionResult> {
 
   if (activeError) return { ok: false, error: activeError.message };
   if (active) {
-    return {
-      ok: false,
-      error:
-        `Week ${active.week_number} is already committed. A committed week cannot be` +
-        ` regenerated — adjust it mid-week instead, or change your check-in cycle to start` +
-        ` a new one.`,
-    };
+    const logged = await loggedSetsForPlan(db, user.id, active.id);
+    if (logged > 0) {
+      return {
+        ok: false,
+        error:
+          `Week ${active.week_number} already has ${logged} logged set${logged === 1 ? "" : "s"}.` +
+          ` Rebuilding would throw that away — adjust the rest of the week instead.`,
+      };
+    }
+    // Untrained: clear it so the new plan is the only active one.
+    const discardError = await discardPlanRows(db, user.id, active.id);
+    if (discardError) return { ok: false, error: discardError };
   }
 
   const weekStart = nextWeekStart(profile.timezone ?? "UTC");
@@ -268,4 +275,94 @@ async function nextWeekNumber(
   const first = new Date(`${sessions.date}T00:00:00Z`).getTime();
   const weeks = Math.floor((Date.now() - first) / (7 * 86_400_000));
   return Math.max(1, weeks + 1);
+}
+
+/** How many sets have been logged against sessions belonging to a plan. */
+async function loggedSetsForPlan(
+  db: ReturnType<typeof serviceClient>,
+  userId: string,
+  weekPlanId: string,
+): Promise<number> {
+  const { data: planned } = await db
+    .from("planned_sessions")
+    .select("id")
+    .eq("week_plan_id", weekPlanId);
+
+  const ids = (planned ?? []).map((p) => p.id);
+  if (!ids.length) return 0;
+
+  const { data: sessions } = await db
+    .from("sessions")
+    .select("id")
+    .eq("user_id", userId)
+    .in("planned_session_id", ids);
+
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  if (!sessionIds.length) return 0;
+
+  const { count } = await db
+    .from("set_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("session_id", sessionIds);
+
+  return count ?? 0;
+}
+
+/**
+ * Removes a plan and everything generated from it.
+ *
+ * planned_sessions and planned_exercises cascade from week_plans, so deleting the plan is
+ * enough — but it is done explicitly rather than relying on a cascade staying in place.
+ */
+async function discardPlanRows(
+  db: ReturnType<typeof serviceClient>,
+  userId: string,
+  weekPlanId: string,
+): Promise<string | null> {
+  const { error } = await db
+    .from("week_plans")
+    .delete()
+    .eq("id", weekPlanId)
+    .eq("user_id", userId);
+  return error ? error.message : null;
+}
+
+export interface RebuildInfo {
+  canRebuild: boolean;
+  loggedSets: number;
+  /** True when the profile changed after the plan was built — the plan is stale. */
+  profileChangedSince: boolean;
+}
+
+/** Whether the active week can be rebuilt, and whether it is worth suggesting. */
+export async function rebuildInfo(): Promise<RebuildInfo | null> {
+  const user = await getUser();
+  if (!user) return null;
+
+  const db = serviceClient();
+  const { data: active } = await db
+    .from("week_plans")
+    .select("id, created_at")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!active) return null;
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("updated_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const logged = await loggedSetsForPlan(db, user.id, active.id);
+
+  return {
+    canRebuild: logged === 0,
+    loggedSets: logged,
+    profileChangedSince: Boolean(
+      profile?.updated_at && new Date(profile.updated_at) > new Date(active.created_at),
+    ),
+  };
 }

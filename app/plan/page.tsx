@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getUser, createClient } from "@/lib/supabase/server";
 import { getGenerationStatus, serviceClient } from "@/lib/coach/run-generation";
+import { rebuildInfo } from "./actions";
 import { PlanScreen } from "./plan-screen";
 import { TabBar } from "@/components/tab-bar";
 
@@ -23,11 +24,14 @@ export default async function PlanPage() {
   }
   if (!profile?.onboarded_at) redirect("/onboarding");
 
-  const status = await getGenerationStatus(serviceClient(), user.id);
+  const [status, rebuild] = await Promise.all([
+    getGenerationStatus(serviceClient(), user.id),
+    rebuildInfo(),
+  ]);
 
   return (
     <>
-      <PlanScreen initialStatus={status} checkinDow={profile.checkin_dow} />
+      <PlanScreen initialStatus={status} checkinDow={profile.checkin_dow} rebuild={rebuild} />
       <TabBar active="plan" />
     </>
   );

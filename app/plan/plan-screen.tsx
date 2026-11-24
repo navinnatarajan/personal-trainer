@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { commitPlan, discardDraft, planStatus, requestPlan } from "./actions";
 import type { GenerationStatus } from "@/lib/coach/run-generation";
+import type { RebuildInfo } from "./actions";
+import { SessionCard, type SessionSummary } from "@/components/session-card";
 
 const DOW_LABEL: Record<number, string> = {
   1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday",
@@ -17,9 +19,11 @@ const POLL_MS = 3000;
 export function PlanScreen({
   initialStatus,
   checkinDow,
+  rebuild,
 }: {
   initialStatus: GenerationStatus | null;
   checkinDow: number;
+  rebuild: RebuildInfo | null;
 }) {
   const [status, setStatus] = useState(initialStatus);
   const [notes, setNotes] = useState("");
@@ -110,6 +114,10 @@ export function PlanScreen({
       </header>
 
       <div className="mt-6 flex flex-col gap-5">
+        {(status?.status === "active" || committed) && status?.plan && (
+          <Committed status={status} rebuild={rebuild} onRebuild={() => discard(false)} />
+        )}
+
         {!status && (
           <CheckIn
             notes={notes}
@@ -138,10 +146,6 @@ export function PlanScreen({
             onRegenerate={(correction) => discard(true, correction)}
             pending={pending}
           />
-        )}
-
-        {(status?.status === "active" || committed) && status?.plan && (
-          <Committed status={status} />
         )}
       </div>
 
@@ -342,9 +346,7 @@ function Review({
         </div>
       )}
 
-      <div className="rounded-[14px] border border-line-2 bg-card-2 px-4 py-3.5">
-        <p className="text-[13px] leading-[1.55] text-bone">{plan.week_note}</p>
-      </div>
+      <WeekNote text={plan.week_note} />
 
       {status.warnings.length > 0 && (
         <div className="flex flex-col gap-[6px]">
@@ -359,55 +361,10 @@ function Review({
         </div>
       )}
 
-      {plan.sessions.map((s) => (
-        <div
-          key={`${s.dow}-${s.date}`}
-          className="flex flex-col gap-2.5 rounded-[14px] border border-line bg-card p-4"
-        >
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="font-mono text-[12px] font-semibold text-bone">
-              {s.dow.toUpperCase()} · {s.session_name}
-            </span>
-            <span className="font-mono text-[11px] text-muted">
-              {s.time_budget_min}m · warmup {s.warmup_min}m
-            </span>
-          </div>
-          <p className="text-[12.5px] text-muted">{s.headline}</p>
-          <p className="text-[12px] leading-relaxed text-mist">
-            <span className="font-semibold text-bone">Warmup:</span> {s.warmup_note}
-          </p>
-          <div className="flex flex-col">
-            {s.exercises.map((ex) => (
-              <div
-                key={ex.name}
-                className="flex flex-col gap-1 border-t border-line-2 py-2.5 first:border-t-0"
-              >
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-[13.5px] text-bone">
-                    {ex.name}
-                    {ex.tag && (
-                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-clay">
-                        {ex.tag}
-                      </span>
-                    )}
-                  </span>
-                  <span className="shrink-0 font-mono text-[12.5px] font-semibold tabular-nums text-bone">
-                    {ex.target_weight === null ? (
-                      <span className="font-normal text-mist">find it</span>
-                    ) : (
-                      ex.target_weight
-                    )}
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] text-muted">
-                  {ex.sets} × {ex.target_reps} · rest {ex.rest_sec}s
-                  {ex.superset_group ? ` · superset ${ex.superset_group}` : ""}
-                </span>
-                <p className="text-[12px] leading-relaxed text-muted">{ex.coaching_note}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* First day open, rest collapsed: reviewing four full sessions at once is a wall
+          on a phone, and a wall gets scrolled past rather than read. */}
+      {plan.sessions.map((s, i) => (
+        <SessionCard key={`${s.dow}-${s.date}`} session={toSummary(s)} defaultOpen={i === 0} />
       ))}
 
       {asking ? (
@@ -477,8 +434,18 @@ function Review({
   );
 }
 
-function Committed({ status }: { status: GenerationStatus }) {
+function Committed({
+  status,
+  rebuild,
+  onRebuild,
+}: {
+  status: GenerationStatus;
+  rebuild: RebuildInfo | null;
+  onRebuild: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
   const plan = status.plan!;
+
   return (
     <div className="flex flex-col gap-4">
       <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-moss">
@@ -487,28 +454,117 @@ function Committed({ status }: { status: GenerationStatus }) {
       <h1 className="font-display text-[25px] font-semibold uppercase leading-[1.08] tracking-[-0.025em] text-bone">
         {plan.headline}
       </h1>
-      <div className="rounded-[14px] border border-line-2 bg-card-2 px-4 py-3.5">
-        <p className="text-[13px] leading-[1.55] text-bone">{plan.week_note}</p>
-      </div>
-      <div className="flex flex-col gap-[7px]">
-        {plan.sessions.map((s) => (
-          <div
-            key={`${s.dow}-${s.date}`}
-            className="flex items-baseline justify-between gap-3 rounded-[12px] border border-line bg-card px-4 py-3"
-          >
-            <span className="font-mono text-[12px] font-semibold text-bone">
-              {s.dow.toUpperCase()} · {s.session_name}
-            </span>
-            <span className="font-mono text-[11px] text-muted">
-              {s.exercises.length} exercises · {s.time_budget_min}m
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="text-[12px] leading-relaxed text-muted">
-        This week is locked. Mid-week adjustments are coming — for now, train it and log
-        your sets.
-      </p>
+
+      {/* Surfaced rather than buried: a plan built before the profile changed is working
+          from data the user has already corrected, and they have no way to know that. */}
+      {rebuild?.profileChangedSince && rebuild.canRebuild && (
+        <div className="flex flex-col gap-2.5 rounded-[12px] border border-clay/45 bg-clay/12 px-4 py-3">
+          <p className="text-[12px] font-bold uppercase tracking-[0.04em] text-clay">
+            Your profile changed after this was built
+          </p>
+          <p className="text-[12.5px] leading-relaxed text-muted">
+            This week was planned from older information. Nothing has been logged against
+            it yet, so rebuilding costs nothing.
+          </p>
+          {confirming ? (
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                className="rounded-full border border-line px-4 py-2.5 font-sans text-[12px] font-semibold uppercase tracking-[0.08em] text-muted"
+              >
+                Keep it
+              </button>
+              <button
+                type="button"
+                onClick={onRebuild}
+                className="flex-1 rounded-full bg-clay px-4 py-2.5 font-sans text-[13px] font-bold uppercase tracking-[0.08em] text-ink"
+              >
+                Rebuild the week
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirming(true)}
+              className="self-start rounded-full border border-clay/60 px-4 py-2 font-sans text-[12px] font-bold uppercase tracking-[0.08em] text-clay"
+            >
+              Rebuild from current profile
+            </button>
+          )}
+        </div>
+      )}
+
+      <WeekNote text={plan.week_note} />
+
+      {plan.sessions.map((s, i) => (
+        <SessionCard key={`${s.dow}-${s.date}`} session={toSummary(s)} defaultOpen={i === 0} />
+      ))}
+
+      {rebuild && rebuild.loggedSets > 0 && (
+        <p className="text-[12px] leading-relaxed text-muted">
+          {rebuild.loggedSets} set{rebuild.loggedSets === 1 ? "" : "s"} logged against this
+          week, so it can no longer be rebuilt. Mid-week adjustments are coming.
+        </p>
+      )}
     </div>
   );
 }
+
+/**
+ * The week note, broken into paragraphs.
+ *
+ * The model writes it as one long block. At body size that is a wall, and it carries the
+ * reasoning that makes the plan feel considered — the part most worth reading is the part
+ * most likely to be skipped in that form.
+ */
+function WeekNote({ text }: { text: string }) {
+  const paragraphs = splitIntoParagraphs(text);
+  return (
+    <div className="flex flex-col gap-2.5 rounded-[14px] border border-line-2 bg-card-2 px-4 py-3.5">
+      {paragraphs.map((para, i) => (
+        <p key={i} className="text-[13px] leading-[1.6] text-bone">
+          {para}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** Groups sentences into paragraphs of two to three, preserving any breaks already there. */
+function splitIntoParagraphs(text: string): string[] {
+  const existing = text.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+  if (existing.length > 1) return existing;
+
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [text];
+  const out: string[] = [];
+  for (let i = 0; i < sentences.length; i += 3) {
+    out.push(sentences.slice(i, i + 3).join("").trim());
+  }
+  return out.filter(Boolean);
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** Maps a raw_plan session into the shared card's shape. */
+function toSummary(s: any): SessionSummary {
+  return {
+    dow: s.dow,
+    date: s.date,
+    sessionName: s.session_name,
+    timeBudgetMin: s.time_budget_min,
+    warmupMin: s.warmup_min ?? null,
+    warmupNote: s.warmup_note ?? null,
+    headline: s.headline ?? null,
+    exercises: (s.exercises ?? []).map((e: any) => ({
+      name: e.name,
+      sets: e.sets,
+      targetReps: e.target_reps,
+      targetWeight: e.target_weight === null ? null : Number(e.target_weight),
+      restSec: e.rest_sec ?? 60,
+      supersetGroup: e.superset_group ?? null,
+      tag: e.tag ?? null,
+      coachingNote: e.coaching_note ?? "",
+    })),
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
