@@ -1,138 +1,97 @@
 @import "tailwindcss";
 
 /*
- * Design tokens ported verbatim from Navin_Week1_Tracker.html, which is the established
- * visual language for this project: warm paper rather than white, brass accent, and
- * monospace reserved for numbers. Not reinvented here.
+ * Single-theme dark, deliberately.
  *
- * Three theme states, matching the original:
- *   :root                                     -> light (the default)
- *   prefers-color-scheme: dark, unless the user forced light
- *   [data-theme="dark"]                       -> explicit override wins either way
+ * The palette is built on Ink #0C1014 as its ground; a light counterpart would be a
+ * different design rather than a variant of this one. So there is no prefers-color-scheme
+ * block and no data-theme switching — but every colour is still painted explicitly, so
+ * the page holds regardless of what the host renders behind it.
+ *
+ * Note that `--ink` here is the *background*. An earlier version of this file carried the
+ * original tracker's warm-paper palette, where `--ink` was the text colour; components
+ * written against this palette then rendered `bg-ink` as near-white in dark mode, which
+ * made the tab bar invisible. The names mean what they say now.
  */
 
 :root {
-  --paper: #f4f2ed;
-  --card: #ffffff;
-  --card-2: #fbfaf7;
-  --sunken: #efede7;
+  /* grounds */
+  --ink: #0c1014;
+  --surface: #141a20;
+  --surface-2: #19212a;
 
-  --ink: #16181c;
-  --ink-2: #4a4f57;
-  --steel: #767c86;
+  /* lines */
+  --line: #2b353d;
+  --line-2: #202a33;
 
-  --line: #dedad1;
-  --line-2: #eae7e0;
+  /* type */
+  --bone: #dedecb;
+  --muted: #9ba39c;
+  --steel: #7c857e;
 
-  --brass: #8f6512;
-  --brass-soft: #f3e7cc;
+  /* roles — colour carries meaning here rather than decorating */
+  --sage: #cfd5b4;      /* primary: today's session, main actions, active nav */
+  --mist: #7f9ba0;      /* push / pull / arms days, progress, secondary emphasis */
+  --clay: #d08a6b;      /* legs days, rest timer, hold-the-weight, warnings */
+  --moss: #7fa06a;      /* completed sets, earned increases, success */
+  --alert: #e37e6b;     /* errors only — distinct from clay, which is a caution */
 
-  --done: #2c7349;
-  --done-soft: #dfeee5;
-  --done-line: #a8cfb9;
-
-  --alert: #a33b2a;
-  --alert-soft: #f7e3de;
-
-  --shadow:
-    0 1px 2px rgba(20, 22, 26, 0.05), 0 10px 26px rgba(20, 22, 26, 0.05);
-  --radius: 10px;
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0e1013;
-    --card: #171a1f;
-    --card-2: #1c2026;
-    --sunken: #121519;
-
-    --ink: #ecedef;
-    --ink-2: #b4b9c1;
-    --steel: #858c96;
-
-    --line: #2b3038;
-    --line-2: #232830;
-
-    --brass: #d9a441;
-    --brass-soft: #33280f;
-
-    --done: #59b888;
-    --done-soft: #152a1f;
-    --done-line: #2f5b44;
-
-    --alert: #e37e6b;
-    --alert-soft: #2c1913;
-
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.35);
-  }
-}
-
-:root[data-theme="dark"] {
-  --paper: #0e1013;
-  --card: #171a1f;
-  --card-2: #1c2026;
-  --sunken: #121519;
-
-  --ink: #ecedef;
-  --ink-2: #b4b9c1;
-  --steel: #858c96;
-
-  --line: #2b3038;
-  --line-2: #232830;
-
-  --brass: #d9a441;
-  --brass-soft: #33280f;
-
-  --done: #59b888;
-  --done-soft: #152a1f;
-  --done-line: #2f5b44;
-
-  --alert: #e37e6b;
-  --alert-soft: #2c1913;
-
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.35);
-}
-
-/* Expose the tokens as Tailwind utilities: bg-paper, text-ink, border-line, etc. */
+/*
+ * Exposed as Tailwind utilities: bg-ink, text-bone, border-line, bg-sage, and so on.
+ *
+ * `card` and `card-2` are aliases for the two surface levels. They are kept because they
+ * read better at the call site — a panel is a card, not a surface — and because removing
+ * them would mean touching every component for no visual change.
+ */
 @theme inline {
-  --color-paper: var(--paper);
-  --color-card: var(--card);
-  --color-card-2: var(--card-2);
-  --color-sunken: var(--sunken);
-
   --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
-  --color-steel: var(--steel);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-card: var(--surface);
+  --color-card-2: var(--surface-2);
 
   --color-line: var(--line);
   --color-line-2: var(--line-2);
 
-  --color-brass: var(--brass);
-  --color-brass-soft: var(--brass-soft);
+  --color-bone: var(--bone);
+  --color-muted: var(--muted);
+  --color-steel: var(--steel);
 
-  --color-done: var(--done);
-  --color-done-soft: var(--done-soft);
-  --color-done-line: var(--done-line);
+  --color-sage: var(--sage);
+  --color-mist: var(--mist);
+  --color-clay: var(--clay);
+  --color-moss: var(--moss);
 
   --color-alert: var(--alert);
-  --color-alert-soft: var(--alert-soft);
+  /* Tinted ground for an error block: readable without shouting. */
+  --color-alert-soft: color-mix(in srgb, var(--alert) 13%, var(--surface));
 
   /* Oswald for display, Plex Sans for UI, Plex Mono for every number. */
   --font-display: var(--font-oswald), "IBM Plex Sans", sans-serif;
   --font-sans: var(--font-plex-sans), -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  --radius-card: 10px;
-  --shadow-card: var(--shadow);
+  --radius-card: 14px;
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--bone);
   font-family: var(--font-sans);
 }
 
 /* Numbers should be comparable down a column, not proportionally spaced. */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard focus must stay visible on every control, including the custom ones. */
+:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
+  border-radius: 6px;
 }

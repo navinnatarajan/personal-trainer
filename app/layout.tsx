@@ -35,11 +35,9 @@ export const viewport: Viewport = {
   // Used one-handed at a squat rack, so the layout is phone-first.
   width: "device-width",
   initialScale: 1,
-  // Follows whichever theme the phone is in, matching the original tracker.
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f2ed" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1013" },
-  ],
+  // Single Ink value rather than a light/dark pair: the app commits to one palette, so a
+  // light theme colour would tint the status bar a colour that appears nowhere in it.
+  themeColor: "#0C1014",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
