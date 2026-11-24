@@ -86,3 +86,63 @@ Two (#1, #6) are presentation: affordance and density.
 One (#2) is delight.
 
 One (#5) is a regression introduced by replacing the placeholder home.
+
+---
+
+## 2026-11-23 — resolutions
+
+### Fixed
+
+**#1 Buttons invisible — root cause was the palette, not styling.** `app/globals.css` still
+held the original warm-paper tokens from the HTML tracker. Every component written since
+the design moved to Ink/Sage used names that did not exist: `bone`, `muted`, `sage`,
+`mist`, `clay`, `moss`. `bg-sage` resolving to nothing meant primary buttons had no
+background at all — floating text rather than anything tappable.
+
+Worse, the two palettes disagree about `ink`. In the old one it is the *text* colour,
+which in dark mode is `#ECEDEF`, so `bg-ink` on the tab bar rendered near-white with
+near-white labels. That was the invisible bottom bar. Confirmed in the deployed CSS before
+fixing: `--ink:#ecedef`, no `#0c1014`, no sage, and `#f4f2ed` paper still present.
+
+**#3, #4, #5 Profile could never be edited.** `/profile` now edits training days and
+budgets, check-in day, sport and cardio, goals and order, split, and standing constraints.
+Sign-out lives there — it had existed on the placeholder home and was lost when that became
+the Lift screen, which was a regression rather than an omission. "Run setup again" clears
+`onboarded_at` without deleting anything, so setup arrives pre-filled.
+
+Context import does the larger job: paste anything written elsewhere and
+`lib/coach/consolidate.ts` extracts what *changed* against the stored profile. It proposes
+and never writes; each proposal carries a verbatim quote rather than an inference, and
+ambiguity goes to an "unclear" list rather than becoming a confident guess. Verified on a
+realistic paste: seven correct proposals in 15.6s for $0.035, including clearing the
+expired ankle restriction and removing basketball, while correctly saying nothing about
+volleyball, which had not changed.
+
+**#6 Review was one long scroll.** Sessions are collapsible cards now, first day open.
+
+**#7a The recommendation was built from stale data.** The plan was created at 23:33 and the
+profile updated at 00:58 — the edits saved correctly, the plan simply predated them, and
+the locking rule refused to rebuild. The rule was meant to stop rerolling until Thursday is
+not leg day; it was never meant to trap a user with input they had already corrected. It
+now protects *logged work*: a week with no logged sets rebuilds freely, one with logged
+sets does not. The committed view surfaces the case when the profile changed after the plan
+was built, since there was previously no way to know.
+
+**#7b The week note was a wall.** Split into paragraphs on sentence boundaries, respecting
+any breaks the model already wrote. Verified on a real 849-character note.
+
+**Committed plans hid their exercises.** Not in the original list but found while fixing
+#7: `planned_exercises` held 15 rows and neither Lift nor Plan displayed any of them. Both
+collapsed to a session name and duration, which tells the user nothing they can act on.
+Both now use the shared session card.
+
+### Still open
+
+**#2 The generating screen has no personality.** Progress bar and staged copy exist; quotes
+and animation do not. The constraint stands: progress is elapsed time against a measured
+average, not real completion, so an animation must not imply precision the number does not
+have.
+
+**Did the better data produce a better plan?** Unverified. The rebuild path shipped but was
+not exercised — the real test of #7 is whether the recommendation improves now that the
+input is correct, and that is the first thing to check next session.
